@@ -8,7 +8,7 @@ import ARViewer from './assets/Ar-viewer';
 useGLTF.preload('/main.glb');
 useGLTF.preload('/handle-bar.glb');
 useGLTF.preload('/handle-knob.glb');
-useGLTF.preload('/handle-touch.glb');
+// useGLTF.preload('/handle-touch.glb');
 useGLTF.preload('/leg-C.glb');
 useGLTF.preload('/leg-D.glb');
 
