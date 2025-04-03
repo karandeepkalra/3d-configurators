@@ -387,7 +387,7 @@ function CabinetConfigurator() {
     // For this example, we'll just use a static path
     // In a complete implementation, you would export the current configuration
     // to a GLB file or have pre-built models for different configurations
-    setArModelPath('/models/cabinet-default.glb');
+    setArModelPath('/main.glb');
     setShowARViewer(true);
   };
   
@@ -796,6 +796,7 @@ function CabinetConfigurator() {
         visible={showARViewer} 
         onClose={closeARViewer} 
         modelPath={arModelPath} 
+        config={config}
       />
       
             
