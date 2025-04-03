@@ -1554,7 +1554,7 @@ function CabinetConfigurator() {
                 <rect x="3" y="3" width="18" height="18" rx="2" />
               </svg>
             </button>
-            // Add this button alongside your other sidebar buttons (below the screenshot button)
+           
 <button 
   className="p-2 border rounded bg-blue-50 hover:bg-blue-100 mt-4"
   onClick={downloadGLB}
