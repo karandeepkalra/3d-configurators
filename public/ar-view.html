@@ -89,12 +89,11 @@
 </html> -->
 
 
-<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple AR View</title>
+    <title>AR View</title>
     <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
     <style>
         body, html {
@@ -109,41 +108,29 @@
             height: 100vh;
             background-color: #f5f5f5;
         }
-        #debug-info {
+        #ar-prompt {
             position: fixed;
-            top: 10px;
-            left: 10px;
-            background: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 10px;
-            border-radius: 5px;
-            font-size: 12px;
-            max-width: 80%;
-            word-break: break-all;
-            z-index: 1000;
-            max-height: 50vh;
-            overflow-y: auto;
-        }
-        .controls {
-            position: fixed;
-            bottom: 20px;
             left: 50%;
+            bottom: 175px;
             transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.7);
+            white-space: nowrap;
+            animation: pulse 2s infinite;
+            display: none;
+            background: rgba(0, 0, 0, 0.8);
             color: white;
-            padding: 10px;
-            border-radius: 5px;
-            z-index: 1000;
-            display: flex;
-            gap: 10px;
+            padding: 12px 24px;
+            border-radius: 24px;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
         }
     </style>
 </head>
 <body>
-    <div id="debug-info"></div>
-    
     <model-viewer
-        id="model"
         camera-controls
         ar
         ar-modes="webxr scene-viewer quick-look"
@@ -154,78 +141,86 @@
         ar-scale="fixed"
         alt="3D model view">
     </model-viewer>
-    
-    <div class="controls">
-        <button id="test-btn">Test Default Model</button>
-        <button id="load-btn">Load URL Model</button>
-    </div>
+    <div id="ar-prompt">Tap to place in your space</div>
 
-    <script type="module">
-        // Debug function
-        function debugLog(message) {
-            const debugElement = document.getElementById('debug-info');
-            const timestamp = new Date().toLocaleTimeString();
-            debugElement.innerHTML += `[${timestamp}] ${message}<br>`;
-            console.log(message);
-        }
-
-        // Get model viewer and buttons
-        const modelViewer = document.getElementById('model');
-        const testBtn = document.getElementById('test-btn');
-        const loadBtn = document.getElementById('load-btn');
-        
-        // Get URL parameters
+    <script>
         const params = new URLSearchParams(window.location.search);
+        const modelViewer = document.querySelector('model-viewer');
+        const arPrompt = document.getElementById('ar-prompt');
+
+        // Set the model source
         const modelPath = params.get('model');
-        
-        debugLog(`URL: ${window.location.href}`);
-        debugLog(`Model parameter: ${modelPath}`);
-        
-        // Event listeners for model viewer
-        modelViewer.addEventListener('load', () => {
-            debugLog('Model loaded successfully!');
-        });
-        
-        modelViewer.addEventListener('error', (event) => {
-            debugLog(`Model error: ${event.detail}`);
-        });
-        
-        // Load model from URL parameter if present
         if (modelPath) {
-            try {
-                const decodedPath = decodeURIComponent(modelPath);
-                debugLog(`Attempting to load model from: ${decodedPath}`);
-                modelViewer.src = decodedPath;
-            } catch (error) {
-                debugLog(`Error setting model source: ${error.message}`);
-            }
-        } else {
-            debugLog('No model path provided in URL parameters');
+            modelViewer.src = modelPath;
         }
-        
-        // Test button to load a default model that's known to work
-        testBtn.addEventListener('click', () => {
-            const defaultModel = "https://modelviewer.dev/shared-assets/models/Astronaut.glb";
-            debugLog(`Testing with default model: ${defaultModel}`);
-            modelViewer.src = defaultModel;
-        });
-        
-        // Load button to try loading the URL model again
-        loadBtn.addEventListener('click', () => {
-            if (modelPath) {
-                const decodedPath = decodeURIComponent(modelPath);
-                debugLog(`Reloading model from: ${decodedPath}`);
-                modelViewer.src = decodedPath;
-            } else {
-                debugLog('No model path to reload');
+
+        // Apply configurations
+        const handleType = params.get('handleType') || 'bar';
+        const handleColor = params.get('handleColor') || 'silver';
+        const legType = params.get('legType') || 'C';
+        const legColor = params.get('legColor') || '#000000';
+        const size = params.get('size') || 'medium';
+        const color = params.get('color');
+        const texture = params.get('texture');
+
+        // Load additional models based on configuration
+        const handleModelPath = `/handle-${handleType}.glb`;
+        const legModelPath = `/leg-${legType}.glb`;
+
+        // Function to apply materials and transformations
+        async function applyConfigurations() {
+            try {
+                // Wait for the model to load
+                await modelViewer.updateComplete;
+
+                const model = modelViewer.model;
+                if (!model) return;
+
+                // Apply scale based on size
+                let scale = 1;
+                if (size === 'small') scale = 0.8;
+                else if (size === 'large') scale = 1.2;
+                model.scale.set(scale, scale, scale);
+
+                // Apply materials
+                model.traverse((node) => {
+                    if (node.isMesh) {
+                        // Create new material
+                        const material = new THREE.MeshStandardMaterial();
+
+                        // Apply color or texture
+                        if (texture) {
+                            const textureLoader = new THREE.TextureLoader();
+                            textureLoader.load(`/colors/${texture}`, (loadedTexture) => {
+                                material.map = loadedTexture;
+                                material.needsUpdate = true;
+                            });
+                        } else if (color) {
+                            material.color.set(color);
+                        }
+
+                        // Apply material properties
+                        material.roughness = 0.7;
+                        material.metalness = 0.3;
+                        node.material = material;
+                    }
+                });
+
+                // Handle AR session events
+                modelViewer.addEventListener('ar-status', (event) => {
+                    if (event.detail.status === 'session-started') {
+                        arPrompt.style.display = 'block';
+                    } else {
+                        arPrompt.style.display = 'none';
+                    }
+                });
+            } catch (error) {
+                console.error('Error applying configurations:', error);
             }
-        });
-        
-        // Log all parameters for debugging
-        debugLog('All URL parameters:');
-        params.forEach((value, key) => {
-            debugLog(`- ${key}: ${value}`);
-        });
+        }
+
+        // Apply configurations when the model is loaded
+        modelViewer.addEventListener('load', applyConfigurations);
     </script>
 </body>
 </html>
