@@ -368,77 +368,6 @@
 // // export default ARViewer;
 
 
-// import React, { useEffect, useRef, useState } from "react";
-// import { QRCodeSVG } from "qrcode.react";
-
-// const ARViewer = ({ visible, onClose, modelPath, productConfig }) => {
-//   const [arViewUrl, setArViewUrl] = useState("");
-  
-//   useEffect(() => {
-//     if (visible) {
-//       // Use the deployed URL instead of window.location.origin
-//       const baseUrl = "https://3d-configurators-hbdn.vercel.app/";
-//       const params = new URLSearchParams();
-      
-//       // Add model path and configuration parameters
-//       params.append("model", modelPath);
-      
-//       if (productConfig) {
-//         Object.entries(productConfig).forEach(([key, value]) => {
-//           params.append(key, String(value));
-//         });
-//       }
-      
-//       // Set the complete AR view URL
-//       setArViewUrl(`${baseUrl}/ar-view.html?${params.toString()}`);
-//     }
-//   }, [visible, modelPath, productConfig]);
-  
-//   if (!visible) return null;
-  
-//   return (
-//     <div className="fixed inset-0 z-50 bg-black bg-opacity-75 flex items-center justify-center p-4">
-//       <div className="bg-white rounded-lg w-full max-w-3xl overflow-hidden">
-//         <div className="p-4 border-b flex justify-between items-center">
-//           <h3 className="text-lg font-semibold">View in AR</h3>
-//           <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
-//             ✕
-//           </button>
-//         </div>
-        
-//         <div className="p-6 flex flex-col items-center">
-//           <div className="mb-6 text-center">
-//             <h4 className="text-lg font-medium mb-2">Scan to view in AR</h4>
-//             <p className="text-sm text-gray-600">
-//               Use your mobile device to scan this QR code and view the cabinet in augmented reality
-//             </p>
-//           </div>
-          
-//           <div className="bg-white p-4 rounded-lg shadow-lg">
-//             <QRCodeSVG value={arViewUrl} size={250} />
-//           </div>
-          
-//           <p className="mt-4 text-sm text-gray-500 max-w-md text-center">
-//             Make sure your device supports WebXR for the best AR experience
-//           </p>
-//         </div>
-        
-//         <div className="p-4 border-t">
-//           <button
-//             className="w-full py-3 bg-black text-white rounded font-medium hover:bg-gray-800 transition-colors"
-//             onClick={onClose}
-//           >
-//             Close
-//           </button>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default ARViewer;
-
-
 import React, { useEffect, useRef, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
 
@@ -447,8 +376,8 @@ const ARViewer = ({ visible, onClose, modelPath, productConfig }) => {
   
   useEffect(() => {
     if (visible) {
-      // Use the current window location to handle both development and production
-      const baseUrl = window.location.href.split('/').slice(0, -1).join('/');
+      // Use the deployed URL instead of window.location.origin
+      const baseUrl = "https://3d-configurators-hbdn.vercel.app/";
       const params = new URLSearchParams();
       
       // Add model path and configuration parameters
@@ -508,3 +437,74 @@ const ARViewer = ({ visible, onClose, modelPath, productConfig }) => {
 };
 
 export default ARViewer;
+
+
+// import React, { useEffect, useRef, useState } from "react";
+// import { QRCodeSVG } from "qrcode.react";
+
+// const ARViewer = ({ visible, onClose, modelPath, productConfig }) => {
+//   const [arViewUrl, setArViewUrl] = useState("");
+  
+//   useEffect(() => {
+//     if (visible) {
+//       // Use the current window location to handle both development and production
+//       const baseUrl = window.location.href.split('/').slice(0, -1).join('/');
+//       const params = new URLSearchParams();
+      
+//       // Add model path and configuration parameters
+//       params.append("model", modelPath);
+      
+//       if (productConfig) {
+//         Object.entries(productConfig).forEach(([key, value]) => {
+//           params.append(key, String(value));
+//         });
+//       }
+      
+//       // Set the complete AR view URL
+//       setArViewUrl(`${baseUrl}/ar-view.html?${params.toString()}`);
+//     }
+//   }, [visible, modelPath, productConfig]);
+  
+//   if (!visible) return null;
+  
+//   return (
+//     <div className="fixed inset-0 z-50 bg-black bg-opacity-75 flex items-center justify-center p-4">
+//       <div className="bg-white rounded-lg w-full max-w-3xl overflow-hidden">
+//         <div className="p-4 border-b flex justify-between items-center">
+//           <h3 className="text-lg font-semibold">View in AR</h3>
+//           <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+//             ✕
+//           </button>
+//         </div>
+        
+//         <div className="p-6 flex flex-col items-center">
+//           <div className="mb-6 text-center">
+//             <h4 className="text-lg font-medium mb-2">Scan to view in AR</h4>
+//             <p className="text-sm text-gray-600">
+//               Use your mobile device to scan this QR code and view the cabinet in augmented reality
+//             </p>
+//           </div>
+          
+//           <div className="bg-white p-4 rounded-lg shadow-lg">
+//             <QRCodeSVG value={arViewUrl} size={250} />
+//           </div>
+          
+//           <p className="mt-4 text-sm text-gray-500 max-w-md text-center">
+//             Make sure your device supports WebXR for the best AR experience
+//           </p>
+//         </div>
+        
+//         <div className="p-4 border-t">
+//           <button
+//             className="w-full py-3 bg-black text-white rounded font-medium hover:bg-gray-800 transition-colors"
+//             onClick={onClose}
+//           >
+//             Close
+//           </button>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default ARViewer;
