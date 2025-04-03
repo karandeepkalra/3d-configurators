@@ -1,5 +1,3 @@
-
-
 import React, { useState, useRef, Suspense, useEffect } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
 import { OrbitControls, useGLTF, Environment, ContactShadows, useTexture, Html} from '@react-three/drei';
@@ -17,9 +15,7 @@ useGLTF.preload('/leg-C.glb');
 useGLTF.preload('/leg-D.glb');
 
 function TexturedCabinet({ config, showDimensions,mainRef, handleRef, legRef } ) {
-  // const mainRef = useRef();
-  // const handleRef = useRef();
-  // const legRef = useRef();
+  
   
   const { scene: cabinetScene } = useGLTF('/main.glb');
   const handlePath = `/handle-${config.handleType}.glb`;
@@ -32,9 +28,6 @@ function TexturedCabinet({ config, showDimensions,mainRef, handleRef, legRef } )
   if (config.texture) {
     texturePaths.cabinetTexture = `/colors/${config.texture}`;
   }
-  
-  // Always call useTexture, even if with an empty object
-  // This ensures the Hook is always called in the same order
   const textureResult = useTexture(texturePaths);
   
   // This runs when the component mounts and whenever the config changes
@@ -466,56 +459,7 @@ function CabinetConfigurator() {
       document.body.removeChild(link);
     }
   };
-  // const downloadGLB = () => {
-  //   const exporter = new GLTFExporter();
-    
-  //   // Create a new group to hold all scene components
-  //   const sceneGroup = new THREE.Group();
-    
-  //   // Add cloned copies of all refs' children
-  //   if (mainRef.current) {
-  //     sceneGroup.add(mainRef.current.clone());
-  //   }
-  //   if (handleRef.current) {
-  //     sceneGroup.add(handleRef.current.clone());
-  //   }
-  //   if (legRef.current) {
-  //     sceneGroup.add(legRef.current.clone());
-  //   }
   
-  //   // Export options
-  //   const options = {
-  //     binary: true, // Export as GLB (binary format)
-  //     trs: false,   // Use matrix transforms instead of TRS
-  //     onlyVisible: true,
-  //     includeCustomExtensions: false
-  //   };
-  
-  //   // Export the scene to GLB
-  //   exporter.parse(
-  //     sceneGroup,
-  //     (gltf) => {
-  //       // Create blob from the exported data
-  //       const blob = new Blob([gltf], { type: 'model/gltf-binary' });
-  //       const url = URL.createObjectURL(blob);
-  //       setArModelUrl(url);
-  //       // Create download link
-  //       const link = document.createElement('a');
-  //       link.href = url;
-  //       link.download = `cabinet-config-${new Date().getTime()}.glb`;
-  //       document.body.appendChild(link);
-  //       link.click();
-  //       document.body.removeChild(link);
-        
-  //       // Clean up
-  //       // URL.revokeObjectURL(url);
-  //     },
-  //     (error) => {
-  //       console.error('Error exporting GLB:', error);
-  //     },
-  //     options
-  //   );
-  // };
 
   const downloadGLB = () => {
     generateGLB().then((url) => {
@@ -529,13 +473,32 @@ function CabinetConfigurator() {
       console.error('Download failed:', error);
     });
   };
+  const prepareSceneForExport = (group) => {
+    group.traverse((node) => {
+      if (node.isMesh && node.material) {
+        const material = node.material.clone();
+        if (material.map) {
+          material.map.needsUpdate = true;
+        }
+        node.material = material;
+        node.material.needsUpdate = true;
+      }
+    });
+    return group;
+  };
   // const generateGLB = () => {
+  //   console.log('Generating GLB...');
   //   const exporter = new GLTFExporter();
   //   const sceneGroup = new THREE.Group();
 
-  //   if (mainRef.current) sceneGroup.add(mainRef.current.clone());
-  //   if (handleRef.current) sceneGroup.add(handleRef.current.clone());
-  //   if (legRef.current) sceneGroup.add(legRef.current.clone());
+  //   if (!mainRef.current || !handleRef.current || !legRef.current) {
+  //     console.error('Scene refs not ready');
+  //     return Promise.reject('Scene not ready');
+  //   }
+
+  //   sceneGroup.add(mainRef.current.clone());
+  //   sceneGroup.add(handleRef.current.clone());
+  //   sceneGroup.add(legRef.current.clone());
 
   //   const options = {
   //     binary: true,
@@ -550,6 +513,7 @@ function CabinetConfigurator() {
   //       (gltf) => {
   //         const blob = new Blob([gltf], { type: 'model/gltf-binary' });
   //         const url = URL.createObjectURL(blob);
+  //         console.log('GLB generated, URL:', url);
   //         setArModelUrl(url);
   //         resolve(url);
   //       },
@@ -561,29 +525,41 @@ function CabinetConfigurator() {
   //     );
   //   });
   // };
-
-
+  
   const generateGLB = () => {
     console.log('Generating GLB...');
     const exporter = new GLTFExporter();
     const sceneGroup = new THREE.Group();
-
+  
     if (!mainRef.current || !handleRef.current || !legRef.current) {
       console.error('Scene refs not ready');
       return Promise.reject('Scene not ready');
     }
-
-    sceneGroup.add(mainRef.current.clone());
-    sceneGroup.add(handleRef.current.clone());
-    sceneGroup.add(legRef.current.clone());
-
+  
+    sceneGroup.add(prepareSceneForExport(mainRef.current.clone()));
+    sceneGroup.add(prepareSceneForExport(handleRef.current.clone()));
+    sceneGroup.add(prepareSceneForExport(legRef.current.clone()));
+  
     const options = {
       binary: true,
       trs: false,
       onlyVisible: true,
-      includeCustomExtensions: false
+      includeCustomExtensions: false,
     };
-
+    const handleARLoad = () => {
+      const modelViewer = document.querySelector('model-viewer');
+      if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+        setTimeout(() => {
+          if (modelViewer && modelViewer.activateAR) {
+            modelViewer.activateAR();
+          } else if (modelViewer) {
+            const arButton = modelViewer.querySelector('button[slot="ar-button"]');
+            if (arButton) arButton.click();
+          }
+        }, 1000); // Delay to ensure model is ready
+      }
+    };
+  
     return new Promise((resolve, reject) => {
       exporter.parse(
         sceneGroup,
@@ -602,18 +578,6 @@ function CabinetConfigurator() {
       );
     });
   };
-  // const openARViewer = async () => {
-  //   const url = await generateGLB();
-  //   setShowARViewer(true);
-  // };
-
-  // const openARViewer = () => {
-  //   // Optionally, keep this for a preview without AR scanner
-  //   generateGLB().then(() => {
-  //     setShowARViewer(true); // This can be removed if you only want QR code trigger
-  //   });
-  // };
-
   const openARViewer = async () => {
     try {
       await generateQRCode(); // Generate the GLB and show the QR code
@@ -632,13 +596,14 @@ function CabinetConfigurator() {
       setArModelUrl(null);
     }
   };
-  // const generateQRCode = async () => {
-  //   const url = await generateGLB();
-  //   const qrUrl = `${window.location.origin}/ar-view?model=${encodeURIComponent(url)}`;
-  //   setShowQRCode(true);
-  //   return qrUrl;
-  // };
-
+  
+  const uploadToServer = async (blob) => {
+    const formData = new FormData();
+    formData.append('file', blob, 'cabinet.glb');
+    const response = await fetch('/upload', { method: 'POST', body: formData });
+    const { url } = await response.json();
+    return url;
+  };
 
   const generateQRCode = async () => {
     console.log('Generating QR Code...');
@@ -657,14 +622,7 @@ function CabinetConfigurator() {
       console.error('Error generating QR code:', error);
     }
   };
-  // useEffect(() => {
-  //   const params = new URLSearchParams(location.search);
-  //   const modelUrl = params.get('model');
-  //   if (modelUrl) {
-  //     setArModelUrl(decodeURIComponent(modelUrl));
-  //     setShowARViewer(true);
-  //   }
-  // }, [location]);
+  
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -709,23 +667,6 @@ function CabinetConfigurator() {
     setOriginalPrice(Math.round(totalPrice * 1.225));
   }, [config]);
   
-  // const updateConfig = (key, value) => {
-  //   setConfig(prev => {
-  //     const newConfig = {
-  //       ...prev,
-  //       [key]: value
-  //     };
-  
-  //     // Handle texture and color interactions correctly
-  //     if (key === 'color') {
-  //       newConfig.texture = ''; // Reset texture when a color is chosen
-  //     } else if (key === 'texture' && value !== '') {
-  //       newConfig.color = ''; // Reset color when a texture is chosen
-  //     }
-      
-  //     return { ...newConfig }; // Ensure a new reference for state update
-  //   });
-  // };
   const updateConfig = (key, value) => {
     setConfig(prev => {
       // Create a copy of the previous state
@@ -929,7 +870,7 @@ function CabinetConfigurator() {
           <div className="bg-white p-4 rounded-lg max-w-md">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold">Scan for AR View</h3>
-              <button onClick={() => setShowQRCode(true)} className="text-gray-500 hover:text-gray-700">
+              <button onClick={() => setShowQRCode(false)} className="text-gray-500 hover:text-gray-700">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M18 6L6 18M6 6l12 12" />
                 </svg>
@@ -1201,10 +1142,6 @@ function CabinetConfigurator() {
     </div>
   );
 }
-
-// export default CabinetConfigurator;
-
-
 function App() {
   return (
     <Router>
