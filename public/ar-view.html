@@ -1,4 +1,4 @@
-<html lang="en">
+<!-- <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -84,6 +84,143 @@
         }
 
         // You can add more configuration handling here based on your needs
+    </script>
+</body>
+</html> -->
+
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AR View</title>
+    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        model-viewer {
+            width: 100%;
+            height: 100vh;
+            background-color: #f5f5f5;
+        }
+        #ar-prompt {
+            position: fixed;
+            left: 50%;
+            bottom: 175px;
+            transform: translateX(-50%);
+            white-space: nowrap;
+            animation: pulse 2s infinite;
+            display: none;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 24px;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <model-viewer
+        camera-controls
+        ar
+        ar-modes="webxr scene-viewer quick-look"
+        shadow-intensity="1"
+        auto-rotate
+        camera-orbit="45deg 75deg 105%"
+        interaction-prompt="none"
+        ar-scale="fixed"
+        alt="3D model view">
+    </model-viewer>
+    <div id="ar-prompt">Tap to place in your space</div>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const modelViewer = document.querySelector('model-viewer');
+        const arPrompt = document.getElementById('ar-prompt');
+
+        // Set the model source
+        const modelPath = params.get('model');
+        if (modelPath) {
+            modelViewer.src = modelPath;
+        }
+
+        // Apply configurations
+        const handleType = params.get('handleType') || 'bar';
+        const handleColor = params.get('handleColor') || 'silver';
+        const legType = params.get('legType') || 'C';
+        const legColor = params.get('legColor') || '#000000';
+        const size = params.get('size') || 'medium';
+        const color = params.get('color');
+        const texture = params.get('texture');
+
+        // Load additional models based on configuration
+        const handleModelPath = `/handle-${handleType}.glb`;
+        const legModelPath = `/leg-${legType}.glb`;
+
+        // Function to apply materials and transformations
+        async function applyConfigurations() {
+            try {
+                // Wait for the model to load
+                await modelViewer.updateComplete;
+
+                const model = modelViewer.model;
+                if (!model) return;
+
+                // Apply scale based on size
+                let scale = 1;
+                if (size === 'small') scale = 0.8;
+                else if (size === 'large') scale = 1.2;
+                model.scale.set(scale, scale, scale);
+
+                // Apply materials
+                model.traverse((node) => {
+                    if (node.isMesh) {
+                        // Create new material
+                        const material = new THREE.MeshStandardMaterial();
+
+                        // Apply color or texture
+                        if (texture) {
+                            const textureLoader = new THREE.TextureLoader();
+                            textureLoader.load(`/colors/${texture}`, (loadedTexture) => {
+                                material.map = loadedTexture;
+                                material.needsUpdate = true;
+                            });
+                        } else if (color) {
+                            material.color.set(color);
+                        }
+
+                        // Apply material properties
+                        material.roughness = 0.7;
+                        material.metalness = 0.3;
+                        node.material = material;
+                    }
+                });
+
+                // Handle AR session events
+                modelViewer.addEventListener('ar-status', (event) => {
+                    if (event.detail.status === 'session-started') {
+                        arPrompt.style.display = 'block';
+                    } else {
+                        arPrompt.style.display = 'none';
+                    }
+                });
+            } catch (error) {
+                console.error('Error applying configurations:', error);
+            }
+        }
+
+        // Apply configurations when the model is loaded
+        modelViewer.addEventListener('load', applyConfigurations);
     </script>
 </body>
 </html>
