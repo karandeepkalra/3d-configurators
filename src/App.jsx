@@ -6,6 +6,8 @@ import { QRCodeCanvas } from 'qrcode.react';
 import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter';
 import Dimension from './assets/Dimension';
 import ARViewer from './assets/Ar-viewer';
+// Import Appwrite SDK at the top of your file
+import { Client, Storage,ID } from 'appwrite';
 import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
 // Preload all models
 useGLTF.preload('/main.glb');
@@ -53,10 +55,11 @@ function TexturedCabinet({ config, showDimensions,mainRef, handleRef, legRef } )
       // You may need to offset the texture to maintain proper positioning
       textureMap.offset.set(0, 1);
       
-      textureMap.needsUpdate = true;
+      // textureMap.needsUpdate = true;
     }
     
     cabinetClone.traverse((node) => {
+      console.log(node.name); 
       if (node.isMesh) {
         const newMaterial = new THREE.MeshStandardMaterial();
     
@@ -65,7 +68,7 @@ function TexturedCabinet({ config, showDimensions,mainRef, handleRef, legRef } )
         }
     
         // Apply texture to all cabinet parts (update condition as needed)
-        if (node.name.includes(node.name) || node.name.includes('frame') || node.name.includes('panel')) {
+        if (node.name.includes("565_01") || node.name.includes('frame') || node.name.includes('panel')) {
           if (textureMap) {
             newMaterial.map = textureMap;
             
@@ -320,11 +323,10 @@ function CabinetConfigurator() {
   const [screenshotUrl, setScreenshotUrl] = useState(null);
   const [showScreenshotModal, setShowScreenshotModal] = useState(false);
   const [screenshotCanvas, setScreenshotCanvas] = useState(null);
-  // const [showARViewer, setShowARViewer] = useState(false);
-  // const [arModelPath, setArModelPath] = useState('/models/cabinet-default.glb');
   const [showARViewer, setShowARViewer] = useState(false);
   const [arModelUrl, setArModelUrl] = useState(null);
   const [showQRCode, setShowQRCode] = useState(false); // For displaying QR code
+
   const location = useLocation();
   // Improved texture list with better file references
   const textures = [
@@ -385,7 +387,6 @@ function CabinetConfigurator() {
     
     return null;
   }
-  
   
   
   const toggleDimensions = () => {
@@ -461,149 +462,23 @@ function CabinetConfigurator() {
   };
   
 
-  // const downloadGLB = () => {
-  //   generateGLB().then((url) => {
-  //     const link = document.createElement('a');
-  //     link.href = url;
-  //     link.download = `cabinet-config-${new Date().getTime()}.glb`;
-  //     document.body.appendChild(link);
-  //     link.click();
-  //     document.body.removeChild(link);
-  //   }).catch((error) => {
-  //     console.error('Download failed:', error);
-  //   });
-  // };
-  const downloadGLB = async () => {
-    try {
-      const url = await generateGLB();
-      const blob = await fetch(url).then(r => r.blob());
-      
-      // Clean up the temporary URL
-      URL.revokeObjectURL(url);
-      
-      // Create a file handle for saving
-      try {
-        const fileHandle = await window.showSaveFilePicker({
-          suggestedName: `cabinet-config-${new Date().getTime()}.glb`,
-          types: [{
-            description: '3D Model',
-            accept: { 'model/gltf-binary': ['.glb'] }
-          }],
-        });
-        
-        const writable = await fileHandle.createWritable();
-        await writable.write(blob);
-        await writable.close();
-        
-        // Store the file path for AR viewing
-        localStorage.setItem('lastModelPath', fileHandle.name);
-        
-        return fileHandle.name;
-      } catch (e) {
-        // Fallback to traditional download if File System API is not supported
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `cabinet-config-${new Date().getTime()}.glb`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        return url;
-      }
-    } catch (error) {
+  const downloadGLB = () => {
+    generateGLB().then((url) => {
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `cabinet-config-${new Date().getTime()}.glb`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }).catch((error) => {
       console.error('Download failed:', error);
-      throw error;
-    }
-  };
-  const storeModelInIndexedDB = async (modelBlob) => {
-    return new Promise((resolve, reject) => {
-      const modelId = `cabinet-config-${new Date().getTime()}`;
-      console.log('Attempting to open IndexedDB with modelId:', modelId);
-      const request = indexedDB.open('ARModelsDB', 1);
-      
-      request.onupgradeneeded = (event) => {
-        const db = event.target.result;
-        if (!db.objectStoreNames.contains('models')) {
-          console.log('Creating object store: models');
-          db.createObjectStore('models', { keyPath: 'id' });
-        }
-      };
-      
-      request.onsuccess = (event) => {
-        const db = event.target.result;
-        const transaction = db.transaction(['models'], 'readwrite');
-        const store = transaction.objectStore('models');
-        
-        const modelData = {
-          id: modelId,
-          blob: modelBlob,
-          timestamp: Date.now()
-        };
-        console.log('Storing model data:', modelData);
-        const storeRequest = store.put(modelData);
-        
-        storeRequest.onsuccess = () => {
-
-
-          console.log('Model stored successfully with ID:', modelId); 
-          resolve(modelId);
-        };
-        
-        storeRequest.onerror = (error) => {
-          console.error('Error storing model:', error);
-          reject(error);
-        };
-      };
-      
-      request.onerror = (error) => {
-        console.error('Error opening IndexedDB:', error);
-        reject(error);
-      };
     });
   };
-  const getModelFromIndexedDB = async (modelId) => {
-    return new Promise((resolve, reject) => {
-      console.log('Attempting to retrieve model with ID:', modelId);
-      const request = indexedDB.open('ARModelsDB', 1);
-      
-      request.onsuccess = (event) => {
-        const db = event.target.result;
-        const transaction = db.transaction(['models'], 'readonly');
-        const store = transaction.objectStore('models');
-        
-        const getRequest = store.get(modelId);
-        
-        getRequest.onsuccess = () => {
-          const modelData = getRequest.result;
-          if (modelData) {
-            const url = URL.createObjectURL(modelData.blob);
-            console.log('Generated URL for model:', url);
-            resolve(url);
-          } else {
-            console.error('Model not found in IndexedDB for ID:', modelId);
-            reject(new Error('Model not found'));
-          }
-        };
-        
-        getRequest.onerror = (error) => {
-          console.error('Error retrieving model:', error);
-          reject(error);
-        };
-      };
-      
-      request.onerror = (error) => {
-
-        console.error('Error opening IndexedDB:', error);
-        reject(error);
-      };
-    });
-  };
-  
   const prepareSceneForExport = (group) => {
     group.traverse((node) => {
       if (node.isMesh && node.material) {
         const material = node.material.clone();
         if (material.map) {
-          material.map.encoding = THREE.sRGBEncoding;
           material.map.needsUpdate = true;
         }
         node.material = material;
@@ -612,233 +487,118 @@ function CabinetConfigurator() {
     });
     return group;
   };
-  // const generateGLB = () => {
-  //   console.log('Generating GLB...');
-  //   const exporter = new GLTFExporter();
-  //   const sceneGroup = new THREE.Group();
-  
-  //   if (!mainRef.current || !handleRef.current || !legRef.current) {
-  //     console.error('Scene refs not ready');
-  //     return Promise.reject('Scene not ready');
-  //   }
-  
-  //   sceneGroup.add(prepareSceneForExport(mainRef.current.clone()));
-  //   sceneGroup.add(prepareSceneForExport(handleRef.current.clone()));
-  //   sceneGroup.add(prepareSceneForExport(legRef.current.clone()));
-  
-  //   const options = {
-  //     binary: true,
-  //     trs: false,
-  //     onlyVisible: true,
-  //     embedImages:true,
-  //     includeCustomExtensions: false,
-  //   };
-  // const generateGLB = () => {
-  //   console.log('Generating GLB...');
-  //   const exporter = new GLTFExporter();
-  //   const sceneGroup = new THREE.Group();
-  
-  //   if (!mainRef.current || !handleRef.current || !legRef.current) {
-  //     console.error('Scene refs not ready');
-  //     return Promise.reject('Scene not ready');
-  //   }
-  
-  //   sceneGroup.add(prepareSceneForExport(mainRef.current.clone()));
-  //   sceneGroup.add(prepareSceneForExport(handleRef.current.clone()));
-  //   sceneGroup.add(prepareSceneForExport(legRef.current.clone()));
-  
-  //   const options = {
-  //     binary: true,
-  //     trs: false,
-  //     onlyVisible: true,
-  //     embedImages: true,
-  //     includeCustomExtensions: false,
-  //   };
-  
-  //   return new Promise((resolve, reject) => {
-  //     exporter.parse(
-  //       sceneGroup,
-  //       async (gltf) => {
-  //         const blob = new Blob([gltf], { type: 'model/gltf-binary' });
-  //         try {
-  //           const modelId = await storeModelInIndexedDB(blob);
-  //           const url = URL.createObjectURL(blob);
-  //           console.log('GLB generated, URL:', url);
-  //           setArModelUrl(url);
-  //           localStorage.setItem('lastModelId', modelId); // Storing modelId
-  //           resolve(`${window.location.origin}/ar-view?modelId=${modelId}`);
-  //         } catch (dbError) {
-  //           console.error('Error storing model in IndexedDB:', dbError);
-  //           const url = URL.createObjectURL(blob);
-  //           setArModelUrl(url);
-  //           resolve(url); // Fallback
-  //         }
-  //       },
-  //       (error) => {
-  //         console.error('Error exporting GLB:', error);
-  //         reject(error);
-  //       },
-  //       options
-  //     );
-  //   });
-  // };
-  // const generateGLB = () => {
-  //   console.log('Generating GLB...');
-  //   const exporter = new GLTFExporter();
-  //   const sceneGroup = new THREE.Group();
-  
-  //   if (!mainRef.current || !handleRef.current || !legRef.current) {
-  //     console.error('Scene refs not ready');
-  //     return Promise.reject('Scene not ready');
-  //   }
-  
-  //   sceneGroup.add(prepareSceneForExport(mainRef.current.clone()));
-  //   sceneGroup.add(prepareSceneForExport(handleRef.current.clone()));
-  //   sceneGroup.add(prepareSceneForExport(legRef.current.clone()));
-  
-  //   const options = {
-  //     binary: true,
-  //     trs: false,
-  //     onlyVisible: true,
-  //     embedImages: true,
-  //     includeCustomExtensions: false,
-  //   };
-  
-  //   return new Promise((resolve, reject) => {
-  //     exporter.parse(
-  //       sceneGroup,
-  //       async (gltf) => {
-  //         const blob = new Blob([gltf], { type: 'model/gltf-binary' });
-  //         try {
-  //           const modelId = await storeModelInIndexedDB(blob);
-  //           const url = URL.createObjectURL(blob);
-  //           console.log('GLB generated, URL:', url);
-  //           setArModelUrl(url);
-  //           localStorage.setItem('lastModelId', modelId);
-  //           resolve({ url, modelId });
-  //         } catch (dbError) {
-  //           console.error('Error storing model in IndexedDB:', dbError);
-  //           const url = URL.createObjectURL(blob);
-  //           setArModelUrl(url);
-  //           resolve({ url });
-  //         }
-  //       },
-  //       (error) => {
-  //         console.error('Error exporting GLB:', error);
-  //         reject(error);
-  //       },
-  //       options
-  //     );
-  //   });
-  // };
-  const generateGLB = () => {
-    console.log('Generating GLB...');
-    const exporter = new GLTFExporter();
-    const sceneGroup = new THREE.Group();
-  
-    if (!mainRef.current || !handleRef.current || !legRef.current) {
-      console.error('Scene refs not ready');
-      return Promise.reject('Scene not ready');
-    }
-  
-    sceneGroup.add(prepareSceneForExport(mainRef.current.clone()));
-    sceneGroup.add(prepareSceneForExport(handleRef.current.clone()));
-    sceneGroup.add(prepareSceneForExport(legRef.current.clone()));
-  
-    const options = {
-      binary: true,
-      trs: false,
-      onlyVisible: true,
-      embedImages: true,
-      includeCustomExtensions: false,
-    };
-  
-    return new Promise((resolve, reject) => {
-      exporter.parse(
-        sceneGroup,
-        async (gltf) => {
-          const blob = new Blob([gltf], { type: 'model/gltf-binary' });
-          try {
-            const modelId = await storeModelInIndexedDB(blob);
-            const url = URL.createObjectURL(blob);
-            console.log('GLB generated, URL:', url);
-            setArModelUrl(url);
-            localStorage.setItem('lastModelId', modelId);
-            resolve({ url, modelId }); // Return both URL and modelId
-          } catch (dbError) {
-            console.error('Error storing model in IndexedDB:', dbError);
-            const url = URL.createObjectURL(blob);
-            setArModelUrl(url);
-            resolve({ url }); // Fallback
-          }
-        },
-        (error) => {
-          console.error('Error exporting GLB:', error);
-          reject(error);
-        },
-        options
-      );
-    });
-  };
-    // // return new Promise((resolve, reject) => {
-    // //   exporter.parse(
-    // //     sceneGroup,
-    // //     (gltf) => {
-    // //       const blob = new Blob([gltf], { type: 'model/gltf-binary' });
-    // //       const url = URL.createObjectURL(blob);
-    // //       console.log('GLB generated, URL:', url);
-    // //       setArModelUrl(url);
-    // //       resolve(url);
-    // //     },
-    // //     (error) => {
-    // //       console.error('Error exporting GLB:', error);
-    // //       reject(error);
-    // //     },
-    // //     options
-    // //   );
-    // // });
-    // return new Promise((resolve, reject) => {
-    //   exporter.parse(
-    //     sceneGroup,
-    //     async (gltf) => {
-    //       const blob = new Blob([gltf], { type: 'model/gltf-binary' });
+  const client = new Client();
+client
+  .setEndpoint('https://cloud.appwrite.io/v1') // Replace with your Appwrite endpoint
+  .setProject('67efeb660016a94a1b36'); // Replace with your project ID
+
+const storage = new Storage(client);
+const [fileId, setFileId] = useState(null);
+const [appwriteModelUrl, setAppwriteModelUrl] = useState(null);
+// Modified function to upload to Appwrite instead of downloading
+const saveGLBToAppwrite = () => {
+  generateGLB().then((url) => {
+    // Fetch the blob from the URL
+    fetch(url)
+      .then(response => response.blob())
+      .then(blob => {
+        const fileName = `cabinet-config-${new Date().getTime()}.glb`;
+        
+        // Create a file object from the blob
+        const file = new File([blob], fileName, { type: 'model/gltf-binary' });
+        
+        // Upload file to Appwrite storage
+        storage.createFile(
+          '67efec5900294e3b8bf2', // Replace with your Appwrite bucket ID
+          ID.unique(), // Use Appwrite's unique ID function or generate your own ID
+          file
+        ).then(response => {
+          console.log('File uploaded successfully to Appwrite:', response);
           
-    //       try {
-    //         // Store the model in IndexedDB and get its ID
-    //         const modelId = await storeModelInIndexedDB(blob);
-            
-    //         // Create a URL for immediate usage
-    //         const url = URL.createObjectURL(blob);
-    //         console.log('GLB generated, URL:', url);
-    //         setArModelUrl(url);
-            
-    //         // Store the model ID for future reference
-    //         localStorage.setItem('lastModelId', modelId);
-            
-    //         // Include the model ID in the URL for sharing
-    //         resolve(`${window.location.origin}/ar-view?modelId=${modelId}`);
-    //       } catch (dbError) {
-    //         console.error('Error storing model in IndexedDB:', dbError);
-    //         // Fallback to just creating a URL
-    //         const url = URL.createObjectURL(blob);
-    //         setArModelUrl(url);
-    //         resolve(url);
-    //       }
-    //     },
-    //     (error) => {
-    //       console.error('Error exporting GLB:', error);
-    //       reject(error);
-    //     },
-    //     options
-    //   );
-    // });
+          // Clean up the Blob URL after upload
+          URL.revokeObjectURL(url);
+          
+          // You might want to store the file ID in your app state or user data
+          const fileId = response.$id;
+          setStoredFileId(fileId); // Assuming you have a state variable for this
+          
+          // Show success message to user
+          alert('3D model saved to your account!');
+        }).catch(error => {
+          console.error('Appwrite upload failed:', error);
+          alert('Failed to save the model. Please try again.');
+        });
+      });
+  }).catch((error) => {
+    console.error('GLB generation failed:', error);
+  });
+};
+
+// Keep your existing generateGLB function as is
+const generateGLB = () => {
+  console.log('Generating GLB...');
+  const exporter = new GLTFExporter();
+  const sceneGroup = new THREE.Group();
   
-  // };
+  if (!mainRef.current || !handleRef.current || !legRef.current) {
+    console.error('Scene refs not ready');
+    return Promise.reject('Scene not ready');
+  }
+  
+  sceneGroup.add(prepareSceneForExport(mainRef.current.clone()));
+  sceneGroup.add(prepareSceneForExport(handleRef.current.clone()));
+  sceneGroup.add(prepareSceneForExport(legRef.current.clone()));
+  
+  const options = {
+    binary: true,
+    trs: false,
+    onlyVisible: true,
+    includeCustomExtensions: false,
+  };
+  
+  return new Promise((resolve, reject) => {
+    exporter.parse(
+      sceneGroup,
+      async (gltf) => {
+        try {
+          const blob = new Blob([gltf], { type: 'model/gltf-binary' });
+          const fileName = `cabinet-config-${new Date().getTime()}.glb`;
+          const file = new File([blob], fileName, { type: 'model/gltf-binary' });
+          
+          // Upload to Appwrite
+          const response = await storage.createFile(
+            '67efec5900294e3b8bf2', // Replace with your bucket ID
+            ID.unique(), // Unique ID for file
+            file
+          );
+          
+          console.log('GLB uploaded to Appwrite:', response);
+          setFileId(response.$id);
+          
+          // Get a public URL for the file
+          const fileUrl = storage.getFileView('67efec5900294e3b8bf2', response.$id);
+          setAppwriteModelUrl(fileUrl);
+          setArModelUrl(fileUrl); // Use the Appwrite URL instead of Blob URL
+          
+          resolve(fileUrl);
+        } catch (error) {
+          console.error('Error uploading to Appwrite:', error);
+          reject(error);
+        }
+      },
+      (error) => {
+        console.error('Error exporting GLB:', error);
+        reject(error);
+      },
+      options
+    );
+  });
+};
+
+  
   const openARViewer = async () => {
     try {
-      await generateQRCode(); // Generate the GLB and show the QR code
-      // Optionally, you can still open the AR viewer after generating the QR code
-      // setShowARViewer(true);
+      await generateQRCode(); 
     } catch (error) {
       console.error('Failed to open AR viewer:', error);
     }
@@ -852,144 +612,35 @@ function CabinetConfigurator() {
       setArModelUrl(null);
     }
   };
-  
-  const uploadToServer = async (blob) => {
-    const formData = new FormData();
-    formData.append('file', blob, 'cabinet.glb');
-    const response = await fetch('/upload', { method: 'POST', body: formData });
-    const { url } = await response.json();
-    return url;
-  };
 
-  // const generateQRCode = async () => {
-  //   console.log('Generating QR Code...');
-  //   try {
-  //     const url = await generateGLB();
-  //     // if (url) {
-  //     //   const qrUrl = `${window.location.origin}/ar-view?model=${encodeURIComponent(url)}`;
-  //     //   console.log('Generated QR URL:', qrUrl);
-  //     //   setShowQRCode(true);
-  //     //   return qrUrl;
-  //     //   // console.log('QR Code should be visible now, URL:', url);
-  //     // }
-  //     if (url) {
-  //       const modelId = localStorage.getItem('lastModelId');
-  //       const qrUrl = `${window.location.origin}/ar-view?modelId=${modelId}`;
-  //       console.log('Generated QR URL:', qrUrl);
-  //       setShowQRCode(true);
-  //       return qrUrl;
-  //     } 
-  //      else {
-  //       console.error('No URL generated for QR code');
-  //     }
-  //   } catch (error) {
-  //     console.error('Error generating QR code:', error);
-  //   }
-  // };
-  // const generateQRCode = async () => {
-  //   console.log('Generating QR Code...');
-  //   try {
-  //     const url = await generateGLB();
-  //     if (url) {
-  //       const modelId = localStorage.getItem('lastModelId');
-  //       const qrUrl = `${window.location.origin}/ar-view?modelId=${modelId}`;
-  //       console.log('Generated QR URL:', qrUrl);
-  //       setShowQRCode(true);
-  //       return qrUrl;
-  //     } else {
-  //       console.error('No URL generated for QR code');
-  //     }
-  //   } catch (error) {
-  //     console.error('Error generating QR code:', error);
-  //   }
-  // };
-  // const generateQRCode = async () => {
-  //   console.log('Generating QR Code...');
-  //   try {
-  //     const url = await generateGLB();
-  //     const modelId = localStorage.getItem('lastModelId');
-  //     console.log('Retrieved modelId from localStorage:', modelId); // Add this
-  //     if (url) {
-  //       const qrUrl = `${window.location.origin}/ar-view?modelId=${modelId}`;
-  //       console.log('Generated QR URL:', qrUrl);
-  //       setShowQRCode(true);
-  //       return qrUrl;
-  //     } else {
-  //       console.error('No URL generated for QR code');
-  //     }
-  //   } catch (error) {
-  //     console.error('Error generating QR code:', error);
-  //   }
-  // };
-  // const generateQRCode = async () => {
-  //   console.log('Generating QR Code...');
-  //   try {
-  //     const result = await generateGLB();
-  //     if (result && result.modelId) {
-  //       const qrUrl = `${window.location.origin}/ar-view?modelId=${result.modelId}`;
-  //       console.log('Generated QR URL:', qrUrl);
-  //       setShowQRCode(true);
-  //       return qrUrl;
-  //     } else {
-  //       console.error('No modelId or URL generated for QR code');
-  //     }
-  //   } catch (error) {
-  //     console.error('Error generating QR code:', error);
-  //   }
-  // };
   const generateQRCode = async () => {
     console.log('Generating QR Code...');
     try {
-      const result = await generateGLB();
-      if (result && result.modelId) {
-        const qrUrl = `${window.location.origin}/ar-view?modelId=${result.modelId}`;
-        console.log('Generated QR URL:', qrUrl);
-        setShowQRCode(true);
-        return qrUrl;
+      const url = await generateGLB();
+      if (url) {
+        const qrUrl = `${window.location.origin}/ar-view?model=${encodeURIComponent(url)}&fileId=${encodeURIComponent(fileId)}`;
+      console.log('Generated QR URL with Appwrite link:', qrUrl);
+      setShowQRCode(true);
+      return qrUrl;
+        // console.log('QR Code should be visible now, URL:', url);
       } else {
-        console.error('No modelId or URL generated for QR code');
+        console.error('No URL generated for QR code');
       }
     } catch (error) {
       console.error('Error generating QR code:', error);
     }
   };
+  
 
-  // useEffect(() => {
-  //   const params = new URLSearchParams(location.search);
-  //   const modelUrl = params.get('modelId');
-  //   if (modelUrl && location.pathname === '/ar-view') {
-  //     console.log('Detected QR scan, opening AR with URL:', modelId);
-  //     setArModelUrl(decodeURIComponent(modelUrl));
-  //     setShowARViewer(true);
-  //   }
-  // }, [location])
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    const modelId = params.get('modelId');
-    
-    if (modelId && location.pathname === '/ar-view') {
-      console.log('Detected QR scan, fetching model with ID:', modelId);
-      
-      getModelFromIndexedDB(modelId)
-        .then(url => {
-          setArModelUrl(url);
-          setShowARViewer(true);
-        })
-        .catch(error => {
-          console.error('Failed to load model from IndexedDB:', error);
-          // Handle error, maybe show a message to the user
-        });
+    const modelUrl = params.get('model');
+    if (modelUrl && location.pathname === '/ar-view') {
+      console.log('Detected QR scan, opening AR with URL:', modelUrl);
+      setArModelUrl(decodeURIComponent(modelUrl));
+      setShowARViewer(true);
     }
-  }, [location]);
-  useEffect(() => {
-    return () => {
-      // Clean up any blob URLs when component unmounts
-      if (arModelUrl) {
-        URL.revokeObjectURL(arModelUrl);
-      }
-    };
-  }, [arModelUrl]);
-  
+  }, [location])
   // Close screenshot modal
   const closeScreenshotModal = () => {
     setShowScreenshotModal(false);
@@ -1024,32 +675,24 @@ function CabinetConfigurator() {
     setOriginalPrice(Math.round(totalPrice * 1.225));
   }, [config]);
   
+
   const updateConfig = (key, value) => {
-    setConfig(prev => {
-      // Create a copy of the previous state
+    setConfig((prev) => {
       const newConfig = { ...prev };
-      
-      // Only handle texture/color interaction if one of those properties is being updated
-      if (key === 'color') {
-        // Only reset texture when changing from solid color to another solid color
-        if (value !== '') {
-          newConfig.texture = '';
-        }
-        newConfig[key] = value;
-      } else if (key === 'texture') {
-        // Only reset color when changing from texture to another texture
-        if (value !== '') {
-          newConfig.color = '';
-        }
-        newConfig[key] = value;
-      } else {
-        // For all other properties, just update normally without side effects
-        newConfig[key] = value;
+  
+      if (key === "color" && value !== "") {
+        // Reset texture ONLY if changing from one color to another, not other settings
+        if (prev.texture) newConfig.texture = "";
+      } else if (key === "texture" && value !== "") {
+        // Reset color ONLY if changing from one texture to another
+        if (prev.color) newConfig.color = "";
       }
-      
+  
+      newConfig[key] = value;
       return newConfig;
     });
   };
+  
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -1207,7 +850,7 @@ function CabinetConfigurator() {
               </button>
             </div>
             <model-viewer
-              src={arModelUrl}
+              src={'arModelUrl'}
               ar
               ar-modes="webxr scene-viewer quick-look"
               camera-controls
@@ -1234,7 +877,7 @@ function CabinetConfigurator() {
               </button>
             </div>
             <QRCodeCanvas
-              value={`${window.location.origin}/ar-view?model=${localStorage.getItem('lastModelId')}`}
+             value={`${window.location.origin}/ar-view?model=${encodeURIComponent(appwriteModelUrl)}&fileId=${encodeURIComponent(fileId)}`}
               size={256}
             />
             <p className="mt-4 text-center">Scan this QR code with your device to view in AR</p>
