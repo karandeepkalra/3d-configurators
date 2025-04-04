@@ -7,7 +7,7 @@ import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter';
 import Dimension from './assets/Dimension';
 import ARViewer from './assets/Ar-viewer';
 // Import Appwrite SDK at the top of your file
-import { Client, Storage,ID } from 'appwrite';
+import { Client, Storage,ID,Permission,Role } from 'appwrite';
 import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
 // Preload all models
 useGLTF.preload('/main.glb');
@@ -513,6 +513,8 @@ const saveGLBToAppwrite = () => {
           '67efec5900294e3b8bf2', // Replace with your Appwrite bucket ID
           ID.unique(), // Use Appwrite's unique ID function or generate your own ID
           file
+
+      
         ).then(response => {
           console.log('File uploaded successfully to Appwrite:', response);
           
@@ -536,27 +538,148 @@ const saveGLBToAppwrite = () => {
 };
 
 // Keep your existing generateGLB function as is
+// const generateGLB = () => {
+//   console.log('Generating GLB...');
+//   const exporter = new GLTFExporter();
+//   const sceneGroup = new THREE.Group();
+  
+//   if (!mainRef.current || !handleRef.current || !legRef.current) {
+//     console.error('Scene refs not ready');
+//     return Promise.reject('Scene not ready');
+//   }
+  
+//   sceneGroup.add(prepareSceneForExport(mainRef.current.clone()));
+//   sceneGroup.add(prepareSceneForExport(handleRef.current.clone()));
+//   sceneGroup.add(prepareSceneForExport(legRef.current.clone()));
+  
+//   const options = {
+//     binary: true,
+//     trs: false,
+//     onlyVisible: true,
+//     includeCustomExtensions: false,
+//   };
+  
+//   return new Promise((resolve, reject) => {
+//     exporter.parse(
+//       sceneGroup,
+//       async (gltf) => {
+//         try {
+//           const blob = new Blob([gltf], { type: 'model/gltf-binary' });
+//           const fileName = `cabinet-config-${new Date().getTime()}.glb`;
+//           const file = new File([blob], fileName, { type: 'model/gltf-binary' });
+          
+//           // Upload to Appwrite
+//           const response = await storage.createFile(
+//             '67efec5900294e3b8bf2', // Replace with your bucket ID
+//             ID.unique(), // Unique ID for file
+//             file,
+//                   );
+          
+//           console.log('GLB uploaded to Appwrite:', response);
+//           setFileId(response.$id);
+          
+//           // Get a public URL for the file
+//           const fileUrl = storage.getFileView('67efec5900294e3b8bf2', response.$id);
+//           setAppwriteModelUrl(fileUrl);
+//           setArModelUrl(fileUrl); // Use the Appwrite URL instead of Blob URL
+          
+//           resolve(fileUrl);
+//         } catch (error) {
+//           console.error('Error uploading to Appwrite:', error);
+//           reject(error);
+//         }
+//       },
+//       (error) => {
+//         console.error('Error exporting GLB:', error);
+//         reject(error);
+//       },
+//       options
+//     );
+//   });
+// };
+
+// const generateGLB = () => {
+//   console.log('Generating GLB...');
+//   const exporter = new GLTFExporter();
+//   const sceneGroup = new THREE.Group();
+
+//   if (!mainRef.current || !handleRef.current || !legRef.current) {
+//     console.error('Scene refs not ready');
+//     return Promise.reject('Scene not ready');
+//   }
+
+//   sceneGroup.add(prepareSceneForExport(mainRef.current.clone()));
+//   sceneGroup.add(prepareSceneForExport(handleRef.current.clone()));
+//   sceneGroup.add(prepareSceneForExport(legRef.current.clone()));
+
+//   const options = {
+//     binary: true,
+//     trs: false,
+//     onlyVisible: true,
+//     includeCustomExtensions: false,
+//   };
+
+//   return new Promise((resolve, reject) => {
+//     exporter.parse(
+//       sceneGroup,
+//       async (gltf) => {
+//         try {
+//           const blob = new Blob([gltf], { type: 'model/gltf-binary' });
+//           const fileName = `cabinet-config-${new Date().getTime()}.glb`;
+//           const file = new File([blob], fileName, { type: 'model/gltf-binary' });
+
+//           const response = await storage.createFile(
+//             '67efec5900294e3b8bf2',
+//             ID.unique(),
+//             file,
+//             [Permission.read(Role.any())]
+//             //['read:all)']// Ensure public read access
+//           );
+
+//           console.log('GLB uploaded to Appwrite:', response);
+//           setFileId(response.$id);
+
+//           const fileUrl = storage.getFileView('67efec5900294e3b8bf2', response.$id);
+//           console.log('Generated file URL:', fileUrl); // Debug log
+//           setAppwriteModelUrl(fileUrl);
+//           setArModelUrl(fileUrl);
+
+//           resolve(fileUrl);
+//         } catch (error) {
+//           console.error('Error uploading to Appwrite:', error);
+//           alert('Failed to upload model to Appwrite.');
+//           reject(error);
+//         }
+//       },
+//       (error) => {
+//         console.error('Error exporting GLB:', error);
+//         reject(error);
+//       },
+//       options
+//     );
+//   });
+// };
 const generateGLB = () => {
   console.log('Generating GLB...');
   const exporter = new GLTFExporter();
   const sceneGroup = new THREE.Group();
-  
+
   if (!mainRef.current || !handleRef.current || !legRef.current) {
     console.error('Scene refs not ready');
     return Promise.reject('Scene not ready');
   }
-  
+
   sceneGroup.add(prepareSceneForExport(mainRef.current.clone()));
   sceneGroup.add(prepareSceneForExport(handleRef.current.clone()));
   sceneGroup.add(prepareSceneForExport(legRef.current.clone()));
-  
+
   const options = {
     binary: true,
     trs: false,
     onlyVisible: true,
     includeCustomExtensions: false,
   };
-  
+
   return new Promise((resolve, reject) => {
     exporter.parse(
       sceneGroup,
@@ -565,25 +688,28 @@ const generateGLB = () => {
           const blob = new Blob([gltf], { type: 'model/gltf-binary' });
           const fileName = `cabinet-config-${new Date().getTime()}.glb`;
           const file = new File([blob], fileName, { type: 'model/gltf-binary' });
-          
-          // Upload to Appwrite
+
           const response = await storage.createFile(
-            '67efec5900294e3b8bf2', // Replace with your bucket ID
-            ID.unique(), // Unique ID for file
+            '67efec5900294e3b8bf2', // Your bucket ID
+            ID.unique(),
             file,
-                  );
-          
+            [Permission.read(Role.any())] // Public read access
+          );
+
           console.log('GLB uploaded to Appwrite:', response);
-          setFileId(response.$id);
-          
-          // Get a public URL for the file
-          const fileUrl = storage.getFileView('67efec5900294e3b8bf2', response.$id);
+          const newFileId = response.$id;
+          setFileId(newFileId); // Update state
+
+          const fileUrl = storage.getFileView('67efec5900294e3b8bf2', newFileId);
+          console.log('Generated file URL:', fileUrl);
           setAppwriteModelUrl(fileUrl);
-          setArModelUrl(fileUrl); // Use the Appwrite URL instead of Blob URL
-          
-          resolve(fileUrl);
+          setArModelUrl(fileUrl);
+
+          // Resolve with both the URL and fileId
+          resolve({ url: fileUrl, fileId: newFileId });
         } catch (error) {
           console.error('Error uploading to Appwrite:', error);
+          alert('Failed to upload model to Appwrite.');
           reject(error);
         }
       },
@@ -595,17 +721,16 @@ const generateGLB = () => {
     );
   });
 };
-
-  
   const openARViewer = async () => {
     try {
-      await generateQRCode(); 
+      const qrUrl = await generateQRCode();
+      if (qrUrl) {
+        console.log('QR Code generated successfully:', qrUrl);
+      }
     } catch (error) {
       console.error('Failed to open AR viewer:', error);
     }
-    
   };
-  
   // Close AR viewer
   const closeARViewer = () => {
     setShowARViewer(false);
@@ -615,34 +740,92 @@ const generateGLB = () => {
     }
   };
 
+  // const generateQRCode = async () => {
+  //   console.log('Generating QR Code...');
+  //   try {
+  //     const url = await generateGLB();
+  //     if (url) {
+  //       const qrUrl = `${window.location.origin}/ar-view?model=${encodeURIComponent(url)}&fileId=${encodeURIComponent(fileId)}`;
+  //     console.log('Generated QR URL with Appwrite link:', qrUrl);
+  //     setShowQRCode(true);
+  //     return qrUrl;
+  //       // console.log('QR Code should be visible now, URL:', url);
+  //     } else {
+  //       console.error('No URL generated for QR code');
+  //     }
+  //   } catch (error) {
+  //     console.error('Error generating QR code:', error);
+  //   }
+  // };
+  
+  // const generateQRCode = async () => {
+  //   console.log('Generating QR Code...');
+  //   try {
+  //     const url = await generateGLB();
+  //     if (url) {
+  //       const qrUrl = `${window.location.origin}/ar-view?fileId=${encodeURIComponent(fileId)}`;
+  //       console.log('Generated QR URL with Appwrite fileId:', qrUrl);
+  //       setShowQRCode(true);
+  //       return qrUrl;
+  //     } else {
+  //       console.error('No URL generated for QR code');
+  //       alert('Failed to generate QR code: No URL returned');
+  //     }
+  //   } catch (error) {
+  //     console.error('Error generating QR code:', error);
+  //     alert('Failed to generate QR code.');
+  //   }
+  // };
   const generateQRCode = async () => {
     console.log('Generating QR Code...');
     try {
-      const url = await generateGLB();
-      if (url) {
-        const qrUrl = `${window.location.origin}/ar-view?model=${encodeURIComponent(url)}&fileId=${encodeURIComponent(fileId)}`;
-      console.log('Generated QR URL with Appwrite link:', qrUrl);
-      setShowQRCode(true);
-      return qrUrl;
-        // console.log('QR Code should be visible now, URL:', url);
+      const { url, fileId: generatedFileId } = await generateGLB(); // Get fileId directly from generateGLB
+      if (url && generatedFileId) {
+        const qrUrl = `${window.location.origin}/ar-view?fileId=${encodeURIComponent(generatedFileId)}`;
+        console.log('Generated QR URL with Appwrite fileId:', qrUrl);
+        setShowQRCode(true);
+        return qrUrl;
       } else {
-        console.error('No URL generated for QR code');
+        console.error('No URL or fileId generated for QR code');
+        alert('Failed to generate QR code: No URL or fileId returned');
       }
     } catch (error) {
       console.error('Error generating QR code:', error);
+      alert('Failed to generate QR code.');
     }
   };
-  
+  // useEffect(() => {
+  //   const params = new URLSearchParams(location.search);
+  //   const fileIdFromUrl = params.get('fileId');
+  //   if (fileIdFromUrl && location.pathname === '/ar-view') {
+  //     console.log('Detected QR scan, fetching model with fileId:', fileIdFromUrl);
+  //     const modelUrl = storage.getFileView('67efec5900294e3b8bf2', fileIdFromUrl);
+  //     console.log('Fetched model URL from Appwrite:', modelUrl); // Debug log
+  //     setArModelUrl(modelUrl);
+  //     setShowARViewer(true);
+  //   }
+  // }, [location]);
+  // useEffect(() => {
+  //   const params = new URLSearchParams(location.search);
+  //   const modelUrl = params.get('model');
+  //   if (modelUrl && location.pathname === '/ar-view') {
+  //     console.log('Detected QR scan, opening AR with URL:', modelUrl);
+  //     setArModelUrl(decodeURIComponent(modelUrl));
+  //     setShowARViewer(true);
+  //   }
+  // }, [location])
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    const modelUrl = params.get('model');
-    if (modelUrl && location.pathname === '/ar-view') {
-      console.log('Detected QR scan, opening AR with URL:', modelUrl);
-      setArModelUrl(decodeURIComponent(modelUrl));
+    const fileIdFromUrl = params.get('fileId');
+    if (fileIdFromUrl && location.pathname === '/ar-view') {
+      console.log('Detected QR scan, fetching model with fileId:', fileIdFromUrl);
+      const modelUrl = storage.getFileView('67efec5900294e3b8bf2', fileIdFromUrl);
+      console.log('Fetched model URL from Appwrite:', modelUrl); // Debug log
+      setArModelUrl(modelUrl);
       setShowARViewer(true);
     }
-  }, [location])
+  }, [location]);
   // Close screenshot modal
   const closeScreenshotModal = () => {
     setShowScreenshotModal(false);
@@ -842,7 +1025,7 @@ const generateGLB = () => {
               )}
             </div>
             
-            {showARViewer && arModelUrl && (
+            {/* {showARViewer && arModelUrl && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-4 rounded-lg w-full h-full max-w-4xl max-h-[90vh] overflow-auto">
             <div className="flex justify-between items-center mb-4">
@@ -852,7 +1035,41 @@ const generateGLB = () => {
                   <path d="M18 6L6 18M6 6l12 12" />
                 </svg>
               </button>
-            </div>
+            </div> */}
+            {showARViewer && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="bg-white p-4 rounded-lg w-full h-full max-w-4xl max-h-[90vh] overflow-auto">
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-lg font-semibold">View in AR</h3>
+        <button onClick={closeARViewer} className="text-gray-500 hover:text-gray-700">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M18 6L6 18M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      {arModelUrl ? (
+        <>
+          <p>Model URL: {arModelUrl}</p> {/* Debug log */}
+          <model-viewer
+            src={arModelUrl}
+            ar
+            ar-modes="webxr scene-viewer quick-look"
+            camera-controls
+            auto-rotate
+            style={{ width: '100%', height: '80vh' }}
+            ar-placement="floor"
+          >
+            <button slot="ar-button" style={{ position: 'absolute', bottom: '20px', right: '20px', padding: '10px', background: '#000', color: '#fff', borderRadius: '5px' }}>
+              Enter AR
+            </button>
+          </model-viewer>
+        </>
+      ) : (
+        <p>Loading model or model URL not available...</p>
+      )}
+    {/* </div> */}
+  {/* </div>
+)} */}
             <model-viewer
               src={'/main.glb'}
               ar
@@ -881,7 +1098,7 @@ const generateGLB = () => {
               </button>
             </div>
             <QRCodeCanvas
-             value={`${window.location.origin}/ar-view?model=${encodeURIComponent(appwriteModelUrl)}&fileId=${encodeURIComponent(fileId)}`}
+             value={`${window.location.origin}/ar-view?fileId=${encodeURIComponent(fileId)}`}
               size={256}
             />
             <p className="mt-4 text-center">Scan this QR code with your device to view in AR</p>
