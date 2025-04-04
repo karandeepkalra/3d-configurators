@@ -570,7 +570,7 @@ const generateGLB = () => {
             '67efec5900294e3b8bf2', // Replace with your bucket ID
             ID.unique(), // Unique ID for file
             file,
-            ['role:all']          );
+                  );
           
           console.log('GLB uploaded to Appwrite:', response);
           setFileId(response.$id);
@@ -618,8 +618,7 @@ const generateGLB = () => {
     try {
       const url = await generateGLB();
       if (url) {
-        // const qrUrl = `${window.location.origin}/ar-view?model=${encodeURIComponent(url)}&fileId=${encodeURIComponent(fileId)}`;
-        const qrUrl = `${window.location.origin}/ar-view?fileId=${encodeURIComponent(fileId)}`;
+        const qrUrl = `${window.location.origin}/ar-view?model=${encodeURIComponent(url)}&fileId=${encodeURIComponent(fileId)}`;
       console.log('Generated QR URL with Appwrite link:', qrUrl);
       setShowQRCode(true);
       return qrUrl;
@@ -633,30 +632,18 @@ const generateGLB = () => {
   };
   
 
-  // useEffect(() => {
-  //   const params = new URLSearchParams(location.search);
-  //   const modelUrl = params.get('model');
-  //   if (modelUrl && location.pathname === '/ar-view') {
-  //     console.log('Detected QR scan, opening AR with URL:', modelUrl);
-  //     setArModelUrl(decodeURIComponent(modelUrl));
-  //     setShowARViewer(true);
-  //   }
-  // }, [location])
-
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    const fileIdFromUrl = params.get('fileId');
-    if (fileIdFromUrl && location.pathname === '/ar-view') {
-      console.log('Detected QR scan, fetching model with fileId:', fileIdFromUrl);
-      const modelUrl = storage.getFileView('67efec5900294e3b8bf2', fileIdFromUrl);
-      setArModelUrl(modelUrl);
+    const modelUrl = params.get('model');
+    if (modelUrl && location.pathname === '/ar-view') {
+      console.log('Detected QR scan, opening AR with URL:', modelUrl);
+      setArModelUrl(decodeURIComponent(modelUrl));
       setShowARViewer(true);
     }
-  }, [location]);
+  }, [location])
   // Close screenshot modal
   const closeScreenshotModal = () => {
     setShowScreenshotModal(false);
-    setArModelUrl(null);
   };
 
   useEffect(() => {
