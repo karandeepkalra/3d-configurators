@@ -457,6 +457,7 @@ function CabinetConfigurator() {
       link.download = `cabinet-config-${new Date().getTime()}.png`;
       document.body.appendChild(link);
       link.click();
+
       document.body.removeChild(link);
     }
   };
@@ -602,6 +603,7 @@ const generateGLB = () => {
     } catch (error) {
       console.error('Failed to open AR viewer:', error);
     }
+    
   };
   
   // Close AR viewer
@@ -690,6 +692,7 @@ const generateGLB = () => {
   
       newConfig[key] = value;
       return newConfig;
+      console.log(arModelUrl);
     });
   };
   
@@ -838,6 +841,7 @@ const generateGLB = () => {
                 </div>
               )}
             </div>
+            
             {showARViewer && arModelUrl && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-4 rounded-lg w-full h-full max-w-4xl max-h-[90vh] overflow-auto">
@@ -850,7 +854,7 @@ const generateGLB = () => {
               </button>
             </div>
             <model-viewer
-              src={arModelUrl}
+              src={'/main.glb'}
               ar
               ar-modes="webxr scene-viewer quick-look"
               camera-controls
@@ -858,9 +862,9 @@ const generateGLB = () => {
               style={{ width: '100%', height: '80vh' }}
               ar-placement="floor"
             >
-              <button slot="ar-button" style={{ position: 'absolute', bottom: '20px', right: '20px', padding: '10px', background: '#000', color: '#fff', borderRadius: '5px' }}>
+              {/* <button slot="ar-button" style={{ position: 'absolute', bottom: '20px', right: '20px', padding: '10px', background: '#000', color: '#fff', borderRadius: '5px' }}>
                 Enter AR
-              </button>
+              </button> */}
             </model-viewer>
           </div>
         </div>
@@ -1002,12 +1006,12 @@ const generateGLB = () => {
               )}
             </div>
             
-            <ARViewer 
+            {/* <ARViewer 
         visible={showARViewer} 
         onClose={closeARViewer} 
         modelPath={arModelUrl} 
         config={config}
-      />
+      /> */}
       
             
             <div className="config-select relative mb-6">
