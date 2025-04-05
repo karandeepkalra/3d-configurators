@@ -15,189 +15,320 @@ useGLTF.preload('/handle-knob.glb');
 useGLTF.preload('/leg-C.glb');
 useGLTF.preload('/leg-D.glb');
 
-function TexturedCabinet({ config, showDimensions,mainRef, handleRef, legRef } ) {
+// function TexturedCabinet({ config, showDimensions,mainRef, handleRef, legRef } ) {
   
   
-  const { scene: cabinetScene } = useGLTF('/main.glb');
-  const handlePath = `/handle-${config.handleType}.glb`;
-  const { scene: handleScene } = useGLTF(handlePath);
-  const legPath = `/leg-${config.legType}.glb`;
-  const { scene: legScene } = useGLTF(legPath);
+//   const { scene: cabinetScene } = useGLTF('/main.glb');
+//   const handlePath = `/handle-${config.handleType}.glb`;
+//   const { scene: handleScene } = useGLTF(handlePath);
+//   const legPath = `/leg-${config.legType}.glb`;
+//   const { scene: legScene } = useGLTF(legPath);
   
-  // Always define texture paths, but it might be an empty object
-  const texturePaths = {};
-  if (config.texture) {
-    texturePaths.cabinetTexture = `/colors/${config.texture}`;
-  }
-  const textureResult = useTexture(texturePaths);
+//   // Always define texture paths, but it might be an empty object
+//   const texturePaths = {};
+//   if (config.texture) {
+//     texturePaths.cabinetTexture = `/colors/${config.texture}`;
+//   }
+//   const textureResult = useTexture(texturePaths);
   
-  // This runs when the component mounts and whenever the config changes
-  useEffect(() => {
-    // Deep clone the scenes to avoid modifying the cached originals
-    const cabinetClone = cabinetScene.clone(true);
-    const handleClone = handleScene.clone(true);
-    const legClone = legScene.clone(true);
-    console.log('Applying texture:', config.texture || 'None (using solid color: ' + config.color + ')');
-    // Create texture map if texture is specified
-    let textureMap = null;
+//   // This runs when the component mounts and whenever the config changes
+//   useEffect(() => {
+//     // Deep clone the scenes to avoid modifying the cached originals
+//     const cabinetClone = cabinetScene.clone(true);
+//     const handleClone = handleScene.clone(true);
+//     const legClone = legScene.clone(true);
+//     console.log('Applying texture:', config.texture || 'None (using solid color: ' + config.color + ')');
+//     // Create texture map if texture is specified
+//     let textureMap = null;
     
+//     if (config.texture && textureResult.cabinetTexture) {
+//       textureMap = textureResult.cabinetTexture;
+//       // Ensure texture is properly configured
+//       textureMap.encoding = THREE.sRGBEncoding;
+//       textureMap.wrapS = THREE.RepeatWrapping;
+//       textureMap.wrapT = THREE.RepeatWrapping;
+      
+//       // Flip the texture vertically by setting a negative Y repeat value
+//       textureMap.repeat.set(1, -1);
+      
+//       // You may need to offset the texture to maintain proper positioning
+//       textureMap.offset.set(0, 1);
+      
+//       // textureMap.needsUpdate = true;
+//     }
+    
+//     cabinetClone.traverse((node) => {
+//       console.log(node.name); 
+//       if (node.isMesh) {
+//         const newMaterial = new THREE.MeshStandardMaterial();
+    
+//         if (node.material) {
+//           Object.assign(newMaterial, node.material);
+//         }
+    
+//         // Apply texture to all cabinet parts (update condition as needed)
+//         if (node.name.includes("565_01") || node.name.includes('frame') || node.name.includes('panel')) {
+//           if (textureMap) {
+//             console.log(`Applying texture ${config.texture} to ${node.name}`);
+//             newMaterial.map = textureMap;
+            
+//             // If you need to flip UVs directly at the geometry level
+//             if (node.geometry && node.geometry.attributes.uv) {
+//               const uv = node.geometry.attributes.uv;
+//               for (let i = 0; i < uv.count; i++) {
+//                 // Flip the V coordinate (1 - v)
+//                 uv.array[i * 2 + 1] = 1 - uv.array[i * 2 + 1];
+//               }
+//               uv.needsUpdate = true;
+//             }
+            
+//             newMaterial.needsUpdate = true;
+//           } else {
+//             console.log(`Applying texture ${config.texture} to ${node.name}`);
+//             newMaterial.color.set(config.color);
+//           }
+//         }
+    
+//         newMaterial.roughness = 0.7;
+//         newMaterial.metalness = 0.3;
+//         node.material = newMaterial;
+//       }
+//     });
+    
+//     // Update handle materials
+//     handleClone.traverse((node) => {
+//       if (node.isMesh) {
+//         const newMaterial = new THREE.MeshStandardMaterial();
+        
+//         if (node.material) {
+//           if (Array.isArray(node.material)) {
+//             Object.assign(newMaterial, node.material[0]);
+//           } else {
+//             Object.assign(newMaterial, node.material);
+//           }
+//         }
+        
+//         let handleColorHex = '#C0C0C0';
+//         if (config.handleColor === 'gold') handleColorHex = '#FFD700';
+//         else if (config.handleColor === 'black') handleColorHex = '#000000';
+//         else if (config.handleColor === 'bronze') handleColorHex = '#CD7F32';
+        
+//         newMaterial.color.set(handleColorHex);
+//         newMaterial.metalness = 0.8;
+//         newMaterial.roughness = 0.2;
+//         node.material = newMaterial;
+//       }
+//     });
+    
+//     // Update leg materials
+//     legClone.traverse((node) => {
+//       if (node.isMesh) {
+//         const newMaterial = new THREE.MeshStandardMaterial();
+        
+//         if (node.material) {
+//           if (Array.isArray(node.material)) {
+//             Object.assign(newMaterial, node.material[0]);
+//           } else {
+//             Object.assign(newMaterial, node.material);
+//           }
+//         }
+        
+//         newMaterial.color.set(config.legColor);
+//         newMaterial.metalness = 0.6;
+//         newMaterial.roughness = 0.3;
+//         node.material = newMaterial;
+//       }
+//     });
+    
+//     // Update refs with processed clones
+//     if (mainRef.current) {
+//       // Replace the existing scene with the new one
+//       while (mainRef.current.children.length > 0) {
+//         mainRef.current.remove(mainRef.current.children[0]);
+//       }
+//       mainRef.current.add(cabinetClone);
+//     }
+    
+//     if (handleRef.current) {
+//       while (handleRef.current.children.length > 0) {
+//         handleRef.current.remove(handleRef.current.children[0]);
+//       }
+//       handleRef.current.add(handleClone);
+//     }
+    
+//     if (legRef.current) {
+//       while (legRef.current.children.length > 0) {
+//         legRef.current.remove(legRef.current.children[0]);
+//       }
+//       legRef.current.add(legClone);
+//     }
+    
+//     // Cleanup function
+//     return () => {
+//       // Dispose of cloned materials to prevent memory leaks
+//       cabinetClone.traverse((node) => {
+//         if (node.isMesh && node.material) {
+//           if (Array.isArray(node.material)) {
+//             node.material.forEach(material => material.dispose());
+//           } else {
+//             node.material.dispose();
+//           }
+//         }
+//       });
+      
+//       handleClone.traverse((node) => {
+//         if (node.isMesh && node.material) {
+//           if (Array.isArray(node.material)) {
+//             node.material.forEach(material => material.dispose());
+//           } else {
+//             node.material.dispose();
+//           }
+//         }
+//       });
+      
+//       legClone.traverse((node) => {
+//         if (node.isMesh && node.material) {
+//           if (Array.isArray(node.material)) {
+//             node.material.forEach(material => material.dispose());
+//           } else {
+//             node.material.dispose();
+//           }
+//         }
+//       });
+//     };
+//   }, [cabinetScene, handleScene, legScene, config, textureResult]);
+function TexturedCabinet({ config, showDimensions, mainRef, handleRef, legRef }) {
+  const { scene: cabinetScene } = useGLTF('/main.glb');
+
+  // Conditionally load handle and leg scenes only if their types are specified
+  const handleScene = config.handleType ? useGLTF(`/handle-${config.handleType}.glb`).scene : null;
+  const legScene = config.legType ? useGLTF(`/leg-${config.legType}.glb`).scene : null;
+
+  // Texture logic remains conditional
+  const texturePaths = config.texture ? { cabinetTexture: `/colors/${config.texture}` } : {};
+  const textureResult = useTexture(texturePaths);
+
+  useEffect(() => {
+    const cabinetClone = cabinetScene.clone(true);
+    let handleClone = null;
+    let legClone = null;
+
+    // Texture application logic
+    let textureMap = null;
     if (config.texture && textureResult.cabinetTexture) {
       textureMap = textureResult.cabinetTexture;
-      // Ensure texture is properly configured
       textureMap.encoding = THREE.sRGBEncoding;
       textureMap.wrapS = THREE.RepeatWrapping;
       textureMap.wrapT = THREE.RepeatWrapping;
-      
-      // Flip the texture vertically by setting a negative Y repeat value
       textureMap.repeat.set(1, -1);
-      
-      // You may need to offset the texture to maintain proper positioning
       textureMap.offset.set(0, 1);
-      
-      // textureMap.needsUpdate = true;
     }
-    
+
     cabinetClone.traverse((node) => {
-      console.log(node.name); 
       if (node.isMesh) {
         const newMaterial = new THREE.MeshStandardMaterial();
-    
-        if (node.material) {
-          Object.assign(newMaterial, node.material);
-        }
-    
-        // Apply texture to all cabinet parts (update condition as needed)
+        if (node.material) Object.assign(newMaterial, node.material);
         if (node.name.includes("565_01") || node.name.includes('frame') || node.name.includes('panel')) {
           if (textureMap) {
-            console.log(`Applying texture ${config.texture} to ${node.name}`);
             newMaterial.map = textureMap;
-            
-            // If you need to flip UVs directly at the geometry level
             if (node.geometry && node.geometry.attributes.uv) {
               const uv = node.geometry.attributes.uv;
               for (let i = 0; i < uv.count; i++) {
-                // Flip the V coordinate (1 - v)
                 uv.array[i * 2 + 1] = 1 - uv.array[i * 2 + 1];
               }
               uv.needsUpdate = true;
             }
-            
             newMaterial.needsUpdate = true;
           } else {
-            console.log(`Applying texture ${config.texture} to ${node.name}`);
             newMaterial.color.set(config.color);
           }
         }
-    
         newMaterial.roughness = 0.7;
         newMaterial.metalness = 0.3;
         node.material = newMaterial;
       }
     });
-    
-    // Update handle materials
-    handleClone.traverse((node) => {
-      if (node.isMesh) {
-        const newMaterial = new THREE.MeshStandardMaterial();
-        
-        if (node.material) {
-          if (Array.isArray(node.material)) {
-            Object.assign(newMaterial, node.material[0]);
-          } else {
-            Object.assign(newMaterial, node.material);
+
+    // Only process handle if handleType is set
+    if (config.handleType && handleScene && handleRef.current) {
+      handleClone = handleScene.clone(true);
+      handleClone.traverse((node) => {
+        if (node.isMesh) {
+          const newMaterial = new THREE.MeshStandardMaterial();
+          if (node.material) {
+            if (Array.isArray(node.material)) Object.assign(newMaterial, node.material[0]);
+            else Object.assign(newMaterial, node.material);
           }
+          let handleColorHex = '#C0C0C0';
+          if (config.handleColor === 'gold') handleColorHex = '#FFD700';
+          else if (config.handleColor === 'black') handleColorHex = '#000000';
+          else if (config.handleColor === 'bronze') handleColorHex = '#CD7F32';
+          newMaterial.color.set(handleColorHex);
+          newMaterial.metalness = 0.8;
+          newMaterial.roughness = 0.2;
+          node.material = newMaterial;
         }
-        
-        let handleColorHex = '#C0C0C0';
-        if (config.handleColor === 'gold') handleColorHex = '#FFD700';
-        else if (config.handleColor === 'black') handleColorHex = '#000000';
-        else if (config.handleColor === 'bronze') handleColorHex = '#CD7F32';
-        
-        newMaterial.color.set(handleColorHex);
-        newMaterial.metalness = 0.8;
-        newMaterial.roughness = 0.2;
-        node.material = newMaterial;
-      }
-    });
-    
-    // Update leg materials
-    legClone.traverse((node) => {
-      if (node.isMesh) {
-        const newMaterial = new THREE.MeshStandardMaterial();
-        
-        if (node.material) {
-          if (Array.isArray(node.material)) {
-            Object.assign(newMaterial, node.material[0]);
-          } else {
-            Object.assign(newMaterial, node.material);
-          }
-        }
-        
-        newMaterial.color.set(config.legColor);
-        newMaterial.metalness = 0.6;
-        newMaterial.roughness = 0.3;
-        node.material = newMaterial;
-      }
-    });
-    
-    // Update refs with processed clones
-    if (mainRef.current) {
-      // Replace the existing scene with the new one
-      while (mainRef.current.children.length > 0) {
-        mainRef.current.remove(mainRef.current.children[0]);
-      }
-      mainRef.current.add(cabinetClone);
-    }
-    
-    if (handleRef.current) {
+      });
       while (handleRef.current.children.length > 0) {
         handleRef.current.remove(handleRef.current.children[0]);
       }
       handleRef.current.add(handleClone);
     }
-    
-    if (legRef.current) {
+
+    // Only process leg if legType is set
+    if (config.legType && legScene && legRef.current) {
+      legClone = legScene.clone(true);
+      legClone.traverse((node) => {
+        if (node.isMesh) {
+          const newMaterial = new THREE.MeshStandardMaterial();
+          if (node.material) {
+            if (Array.isArray(node.material)) Object.assign(newMaterial, node.material[0]);
+            else Object.assign(newMaterial, node.material);
+          }
+          newMaterial.color.set(config.legColor);
+          newMaterial.metalness = 0.6;
+          newMaterial.roughness = 0.3;
+          node.material = newMaterial;
+        }
+      });
       while (legRef.current.children.length > 0) {
         legRef.current.remove(legRef.current.children[0]);
       }
       legRef.current.add(legClone);
     }
-    
-    // Cleanup function
+
+    if (mainRef.current) {
+      while (mainRef.current.children.length > 0) {
+        mainRef.current.remove(mainRef.current.children[0]);
+      }
+      mainRef.current.add(cabinetClone);
+    }
+
     return () => {
-      // Dispose of cloned materials to prevent memory leaks
       cabinetClone.traverse((node) => {
         if (node.isMesh && node.material) {
-          if (Array.isArray(node.material)) {
-            node.material.forEach(material => material.dispose());
-          } else {
-            node.material.dispose();
-          }
+          if (Array.isArray(node.material)) node.material.forEach(material => material.dispose());
+          else node.material.dispose();
         }
       });
-      
-      handleClone.traverse((node) => {
-        if (node.isMesh && node.material) {
-          if (Array.isArray(node.material)) {
-            node.material.forEach(material => material.dispose());
-          } else {
-            node.material.dispose();
+      if (handleClone) {
+        handleClone.traverse((node) => {
+          if (node.isMesh && node.material) {
+            if (Array.isArray(node.material)) node.material.forEach(material => material.dispose());
+            else node.material.dispose();
           }
-        }
-      });
-      
-      legClone.traverse((node) => {
-        if (node.isMesh && node.material) {
-          if (Array.isArray(node.material)) {
-            node.material.forEach(material => material.dispose());
-          } else {
-            node.material.dispose();
+        });
+      }
+      if (legClone) {
+        legClone.traverse((node) => {
+          if (node.isMesh && node.material) {
+            if (Array.isArray(node.material)) node.material.forEach(material => material.dispose());
+            else node.material.dispose();
           }
-        }
-      });
+        });
+      }
     };
-  }, [cabinetScene, handleScene, legScene, config, textureResult]);
-  
+  }, [cabinetScene, handleScene, legScene, config, textureResult, mainRef, handleRef, legRef]);
   let scale = 1;
   if (config.size === 'small') scale = 0.8;
   else if (config.size === 'large') scale = 1.2;
@@ -301,11 +432,11 @@ function CabinetConfigurator() {
   const legRef = useRef();
   const [config, setConfig] = useState({
     size: 'medium',
-    color: '#4b5c4b',
+    color: 'white',
     woodFinish: '#8B4513',
-    handleType: 'bar',
+    handleType: '',
     handleColor: 'silver',
-    legType: 'C',
+    legType: '',
     legColor: '#000000',
     texture: ''
   });
@@ -870,9 +1001,7 @@ const generateGLB = () => {
             style={{ width: '100%', height: '80vh' }}
             ar-placement="floor"
           >
-            <button slot="ar-button" style={{ position: 'absolute', bottom: '20px', right: '20px', padding: '10px', background: '#000', color: '#fff', borderRadius: '5px' }}>
-              Enter AR
-            </button>
+            
           </model-viewer>
         </>
       ) : (
