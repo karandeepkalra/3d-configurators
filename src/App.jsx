@@ -858,6 +858,9 @@ const generateGLB = () => {
       {arModelUrl ? (
         <>
           <p>Model URL: {arModelUrl}</p> {/* Debug log */}
+          <button slot="ar-button" style={{ position: 'absolute', bottom: '20px', right: '20px', padding: '10px', background: '#000', color: '#fff', borderRadius: '5px' }}>
+              Enter AR
+            </button>
           <model-viewer
             src={arModelUrl}
             ar
