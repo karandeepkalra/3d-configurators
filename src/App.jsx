@@ -359,7 +359,11 @@ function TexturedCabinet({ config, showDimensions, mainRef, handleRef, legRef })
   const heightEnd = [-dimensions.width / 2, dimensions.height, -dimensions.depth / 2];
   const depthStart = [-dimensions.width / 2, 0, -dimensions.depth / 2];
   const depthEnd = [-dimensions.width / 2, 0, dimensions.depth / 2];
-
+  useEffect(() => {
+    if (showDimensions) {
+      console.log('Dimensions visible:', dimensions);
+    }
+  }, [showDimensions, dimensions]);
   return (
     <group>
       <group ref={mainRef} scale={scale} position={[0, 0, 0]} />
@@ -370,6 +374,59 @@ function TexturedCabinet({ config, showDimensions, mainRef, handleRef, legRef })
           <Dimension start={widthStart} end={widthEnd} visible={showDimensions} />
           <Dimension start={heightStart} end={heightEnd} visible={showDimensions} />
           <Dimension start={depthStart} end={depthEnd} visible={showDimensions} />
+          <Html
+            // position={[dimensions.width / 2 + 0.5, dimensions.height / 2 + 0.2, 0]} // Top-right corner (adjusted outward)
+            // style={{
+            //   pointerEvents: 'none',
+            // }}
+            // zIndexRange={[100, 0]} // Ensure it renders on top
+          >
+            <div
+              style={{
+                position: 'fixed', 
+                top: '120px', 
+                left: '150px', 
+                pointerEvents: 'none',
+                zIndex: 100,
+                background: 'rgba(0, 0, 0, 0.7)',
+                color: 'white',
+                padding: '10px',
+                borderRadius: '5px',
+                fontSize: '16px',
+                maxWidth: '200px', // Responsive max width
+                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)', // Subtle shadow for readability
+              }}
+            >
+              <table
+                style={{
+                  width: '100%',
+                  borderCollapse: 'collapse',
+                  fontFamily: 'Arial, sans-serif',
+                }}
+              >
+                <thead>
+                  <tr>
+                    <th style={{ padding: '5px', textAlign: 'left' }}>Dimension</th>
+                    <th style={{ padding: '5px', textAlign: 'right' }}>Value (m)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td style={{ padding: '5px', textAlign: 'left' }}>Width</td>
+                    <td style={{ padding: '5px', textAlign: 'right' }}>{dimensions.width.toFixed(2)}</td>
+                  </tr>
+                  <tr>
+                    <td style={{ padding: '5px', textAlign: 'left' }}>Height</td>
+                    <td style={{ padding: '5px', textAlign: 'right' }}>{dimensions.height.toFixed(2)}</td>
+                  </tr>
+                  <tr>
+                    <td style={{ padding: '5px', textAlign: 'left' }}>Depth</td>
+                    <td style={{ padding: '5px', textAlign: 'right' }}>{dimensions.depth.toFixed(2)}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </Html>
         </>
       )}
     </group>
@@ -1086,24 +1143,7 @@ const generateGLB = () => {
               )}
             </div>
             
-            {!config.texture && (
-              <div className="mb-6">
-                <p className="text-sm text-gray-700 mb-2">Cabinet Color</p>
-                <div className="bg-gray-50 p-4 rounded">
-                  <div className="grid grid-cols-4 gap-4">
-                    {cabinetColors.map((colorOption, index) => (
-                      <button
-                        key={index}
-                        className={`w-12 h-12 rounded cursor-pointer ${config.color === colorOption.color ? 'ring-2 ring-black' : ''}`}
-                        style={{ backgroundColor: colorOption.color }}
-                        onClick={() => updateConfig('color', colorOption.color)}
-                        aria-label={`Select ${colorOption.id} color`}
-                      />
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
+            
             
             <div className="config-select relative mb-6">
               <div 
