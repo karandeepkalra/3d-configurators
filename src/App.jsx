@@ -536,7 +536,99 @@ function CabinetConfigurator() {
     { id: 'gold', name: 'Gold', color: '#FFD700' },
     { id: 'bronze', name: 'Bronze', color: '#CD7F32' }
   ];
+  const closeAllDropdowns = () => {
+    setShowSizes(false);
+    setShowTextures(false);
+    setShowHandleTypes(false);
+    setShowHandleColors(false);
+    setShowLegTypes(false);
+    setShowLegColors(false);
+  };
 
+  // Toggle functions that close others first
+  // const toggleSizes = () => {
+  //   closeAllDropdowns();
+  //   setShowSizes(prev => !prev);
+  // };
+
+  // const toggleTextures = () => {
+  //   closeAllDropdowns();
+  //   setShowTextures(prev => !prev);
+  // };
+
+  // const toggleHandleTypes = () => {
+  //   closeAllDropdowns();
+  //   setShowHandleTypes(prev => !prev);
+  // };
+
+  // const toggleHandleColors = () => {
+  //   closeAllDropdowns();
+  //   setShowHandleColors(prev => !prev);
+  // };
+
+  // const toggleLegTypes = () => {
+  //   closeAllDropdowns();
+  //   setShowLegTypes(prev => !prev);
+  // };
+
+  // const toggleLegColors = () => {
+  //   closeAllDropdowns();
+  //   setShowLegColors(prev => !prev);
+  // };
+  const toggleSizes = () => {
+    if (showSizes) {
+      setShowSizes(false); // If already open, just close it
+    } else {
+      closeAllDropdowns();
+      setShowSizes(true); // Open it after closing others
+    }
+  };
+  
+  const toggleTextures = () => {
+    if (showTextures) {
+      setShowTextures(false);
+    } else {
+      closeAllDropdowns();
+      setShowTextures(true);
+    }
+  };
+  
+  const toggleHandleTypes = () => {
+    if (showHandleTypes) {
+      setShowHandleTypes(false);
+    } else {
+      closeAllDropdowns();
+      setShowHandleTypes(true);
+    }
+  };
+  
+  const toggleHandleColors = () => {
+    if (showHandleColors) {
+      setShowHandleColors(false);
+    } else {
+      closeAllDropdowns();
+      setShowHandleColors(true);
+    }
+  };
+  
+  const toggleLegTypes = () => {
+    if (showLegTypes) {
+      setShowLegTypes(false);
+    } else {
+      closeAllDropdowns();
+      setShowLegTypes(true);
+    }
+  };
+  
+  const toggleLegColors = () => {
+    if (showLegColors) {
+      setShowLegColors(false);
+    } else {
+      closeAllDropdowns();
+      setShowLegColors(true);
+    }
+  };
+ 
   function CanvasCapture() {
     const { gl, scene, camera } = useThree();
     
@@ -554,6 +646,7 @@ function CabinetConfigurator() {
   
   const toggleDimensions = () => {
     // setShowDimensions(!showDimensions);
+    if (!showARViewer)
     setShowDimensions(prevShowDimensions => !prevShowDimensions);
     
   
@@ -877,6 +970,11 @@ const generateGLB = () => {
         return newConfig;
       });
     };
+    useEffect(() => {
+      if (showARViewer) {
+        setShowDimensions(false); // Hide dimensions when AR viewer is open
+      }
+    }, [showARViewer]);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -997,7 +1095,7 @@ const generateGLB = () => {
             <div className="config-select relative mb-6">
               <div 
                 className="flex items-center justify-between bg-gray-100 p-3 rounded cursor-pointer"
-                onClick={() => setShowSizes(!showSizes)}
+                onClick={toggleSizes}
               >
                 <span>Size: {sizes.find(s => s.id === config.size)?.name}</span>
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -1112,7 +1210,7 @@ const generateGLB = () => {
             <div className="config-select relative mb-6">
               <div 
                 className="flex items-center justify-between bg-gray-100 p-3 rounded cursor-pointer"
-                onClick={() => setShowTextures(!showTextures)}
+                onClick={toggleTextures}
               >
                 <span>Surface Finish: {textures.find(t => t.id === config.texture)?.name || 'Solid Color'}</span>
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -1148,7 +1246,7 @@ const generateGLB = () => {
             <div className="config-select relative mb-6">
               <div 
                 className="flex items-center justify-between bg-gray-100 p-3 rounded cursor-pointer"
-                onClick={() => setShowHandleTypes(!showHandleTypes)}
+                onClick={toggleHandleTypes}
               >
                 <span>Handle Type: {handleTypes.find(type => type.id === config.handleType)?.name}</span>
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -1176,7 +1274,7 @@ const generateGLB = () => {
              <div className="config-select relative mb-6">
               <div 
                 className="flex items-center justify-between bg-gray-100 p-3 rounded cursor-pointer"
-                onClick={() => setShowHandleColors(!showHandleColors)}
+                onClick={toggleHandleColors}
               >
                 <div className="flex items-center">
                   <div 
@@ -1217,7 +1315,7 @@ const generateGLB = () => {
             <div className="config-select relative mb-6">
               <div 
                 className="flex items-center justify-between bg-gray-100 p-3 rounded cursor-pointer"
-                onClick={() => setShowLegTypes(!showLegTypes)}
+                onClick={toggleLegTypes}
               >
                 <span>Leg Type: {legTypes.find(type => type.id === config.legType)?.name}</span>
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -1246,7 +1344,7 @@ const generateGLB = () => {
             <div className="config-select relative mb-6">
               <div 
                 className="flex items-center justify-between bg-gray-100 p-3 rounded cursor-pointer"
-                onClick={() => setShowLegColors(!showLegColors)}
+                onClick={toggleLegColors}
               >
                 <div className="flex items-center">
                   <div 
