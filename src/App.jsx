@@ -14,189 +14,6 @@ useGLTF.preload('/handle-bar.glb');
 useGLTF.preload('/handle-knob.glb');
 useGLTF.preload('/leg-C.glb');
 useGLTF.preload('/leg-D.glb');
-
-// function TexturedCabinet({ config, showDimensions,mainRef, handleRef, legRef } ) {
-  
-  
-//   const { scene: cabinetScene } = useGLTF('/main.glb');
-//   const handlePath = `/handle-${config.handleType}.glb`;
-//   const { scene: handleScene } = useGLTF(handlePath);
-//   const legPath = `/leg-${config.legType}.glb`;
-//   const { scene: legScene } = useGLTF(legPath);
-  
-//   // Always define texture paths, but it might be an empty object
-//   const texturePaths = {};
-//   if (config.texture) {
-//     texturePaths.cabinetTexture = `/colors/${config.texture}`;
-//   }
-//   const textureResult = useTexture(texturePaths);
-  
-//   // This runs when the component mounts and whenever the config changes
-//   useEffect(() => {
-//     // Deep clone the scenes to avoid modifying the cached originals
-//     const cabinetClone = cabinetScene.clone(true);
-//     const handleClone = handleScene.clone(true);
-//     const legClone = legScene.clone(true);
-//     console.log('Applying texture:', config.texture || 'None (using solid color: ' + config.color + ')');
-//     // Create texture map if texture is specified
-//     let textureMap = null;
-    
-//     if (config.texture && textureResult.cabinetTexture) {
-//       textureMap = textureResult.cabinetTexture;
-//       // Ensure texture is properly configured
-//       textureMap.encoding = THREE.sRGBEncoding;
-//       textureMap.wrapS = THREE.RepeatWrapping;
-//       textureMap.wrapT = THREE.RepeatWrapping;
-      
-//       // Flip the texture vertically by setting a negative Y repeat value
-//       textureMap.repeat.set(1, -1);
-      
-//       // You may need to offset the texture to maintain proper positioning
-//       textureMap.offset.set(0, 1);
-      
-//       // textureMap.needsUpdate = true;
-//     }
-    
-//     cabinetClone.traverse((node) => {
-//       console.log(node.name); 
-//       if (node.isMesh) {
-//         const newMaterial = new THREE.MeshStandardMaterial();
-    
-//         if (node.material) {
-//           Object.assign(newMaterial, node.material);
-//         }
-    
-//         // Apply texture to all cabinet parts (update condition as needed)
-//         if (node.name.includes("565_01") || node.name.includes('frame') || node.name.includes('panel')) {
-//           if (textureMap) {
-//             console.log(`Applying texture ${config.texture} to ${node.name}`);
-//             newMaterial.map = textureMap;
-            
-//             // If you need to flip UVs directly at the geometry level
-//             if (node.geometry && node.geometry.attributes.uv) {
-//               const uv = node.geometry.attributes.uv;
-//               for (let i = 0; i < uv.count; i++) {
-//                 // Flip the V coordinate (1 - v)
-//                 uv.array[i * 2 + 1] = 1 - uv.array[i * 2 + 1];
-//               }
-//               uv.needsUpdate = true;
-//             }
-            
-//             newMaterial.needsUpdate = true;
-//           } else {
-//             console.log(`Applying texture ${config.texture} to ${node.name}`);
-//             newMaterial.color.set(config.color);
-//           }
-//         }
-    
-//         newMaterial.roughness = 0.7;
-//         newMaterial.metalness = 0.3;
-//         node.material = newMaterial;
-//       }
-//     });
-    
-//     // Update handle materials
-//     handleClone.traverse((node) => {
-//       if (node.isMesh) {
-//         const newMaterial = new THREE.MeshStandardMaterial();
-        
-//         if (node.material) {
-//           if (Array.isArray(node.material)) {
-//             Object.assign(newMaterial, node.material[0]);
-//           } else {
-//             Object.assign(newMaterial, node.material);
-//           }
-//         }
-        
-//         let handleColorHex = '#C0C0C0';
-//         if (config.handleColor === 'gold') handleColorHex = '#FFD700';
-//         else if (config.handleColor === 'black') handleColorHex = '#000000';
-//         else if (config.handleColor === 'bronze') handleColorHex = '#CD7F32';
-        
-//         newMaterial.color.set(handleColorHex);
-//         newMaterial.metalness = 0.8;
-//         newMaterial.roughness = 0.2;
-//         node.material = newMaterial;
-//       }
-//     });
-    
-//     // Update leg materials
-//     legClone.traverse((node) => {
-//       if (node.isMesh) {
-//         const newMaterial = new THREE.MeshStandardMaterial();
-        
-//         if (node.material) {
-//           if (Array.isArray(node.material)) {
-//             Object.assign(newMaterial, node.material[0]);
-//           } else {
-//             Object.assign(newMaterial, node.material);
-//           }
-//         }
-        
-//         newMaterial.color.set(config.legColor);
-//         newMaterial.metalness = 0.6;
-//         newMaterial.roughness = 0.3;
-//         node.material = newMaterial;
-//       }
-//     });
-    
-//     // Update refs with processed clones
-//     if (mainRef.current) {
-//       // Replace the existing scene with the new one
-//       while (mainRef.current.children.length > 0) {
-//         mainRef.current.remove(mainRef.current.children[0]);
-//       }
-//       mainRef.current.add(cabinetClone);
-//     }
-    
-//     if (handleRef.current) {
-//       while (handleRef.current.children.length > 0) {
-//         handleRef.current.remove(handleRef.current.children[0]);
-//       }
-//       handleRef.current.add(handleClone);
-//     }
-    
-//     if (legRef.current) {
-//       while (legRef.current.children.length > 0) {
-//         legRef.current.remove(legRef.current.children[0]);
-//       }
-//       legRef.current.add(legClone);
-//     }
-    
-//     // Cleanup function
-//     return () => {
-//       // Dispose of cloned materials to prevent memory leaks
-//       cabinetClone.traverse((node) => {
-//         if (node.isMesh && node.material) {
-//           if (Array.isArray(node.material)) {
-//             node.material.forEach(material => material.dispose());
-//           } else {
-//             node.material.dispose();
-//           }
-//         }
-//       });
-      
-//       handleClone.traverse((node) => {
-//         if (node.isMesh && node.material) {
-//           if (Array.isArray(node.material)) {
-//             node.material.forEach(material => material.dispose());
-//           } else {
-//             node.material.dispose();
-//           }
-//         }
-//       });
-      
-//       legClone.traverse((node) => {
-//         if (node.isMesh && node.material) {
-//           if (Array.isArray(node.material)) {
-//             node.material.forEach(material => material.dispose());
-//           } else {
-//             node.material.dispose();
-//           }
-//         }
-//       });
-//     };
-//   }, [cabinetScene, handleScene, legScene, config, textureResult]);
 function TexturedCabinet({ config, showDimensions, mainRef, handleRef, legRef }) {
   const { scene: cabinetScene } = useGLTF('/main.glb');
 
@@ -217,11 +34,16 @@ function TexturedCabinet({ config, showDimensions, mainRef, handleRef, legRef })
     let textureMap = null;
     if (config.texture && textureResult.cabinetTexture) {
       textureMap = textureResult.cabinetTexture;
+      console.log("Texture loaded:", textureMap);
       textureMap.encoding = THREE.sRGBEncoding;
-      textureMap.wrapS = THREE.RepeatWrapping;
-      textureMap.wrapT = THREE.RepeatWrapping;
-      textureMap.repeat.set(1, -1);
-      textureMap.offset.set(0, 1);
+      // textureMap.wrapS = THREE.RepeatWrapping;
+      // textureMap.wrapT = THREE.RepeatWrapping;
+      // textureMap.repeat.set(1, -1);
+      // textureMap.offset.set(0, 1);
+      textureMap.wrapS = THREE.ClampToEdgeWrapping; // Temporarily disable wrapping
+    textureMap.wrapT = THREE.ClampToEdgeWrapping;
+    textureMap.repeat.set(1, 1); // Reset repeat
+    textureMap.offset.set(0, 0); // Reset offset
     }
 
     cabinetClone.traverse((node) => {
@@ -232,11 +54,11 @@ function TexturedCabinet({ config, showDimensions, mainRef, handleRef, legRef })
           if (textureMap) {
             newMaterial.map = textureMap;
             if (node.geometry && node.geometry.attributes.uv) {
-              const uv = node.geometry.attributes.uv;
-              for (let i = 0; i < uv.count; i++) {
-                uv.array[i * 2 + 1] = 1 - uv.array[i * 2 + 1];
-              }
-              uv.needsUpdate = true;
+              // const uv = node.geometry.attributes.uv;
+              // for (let i = 0; i < uv.count; i++) {
+              //   uv.array[i * 2 + 1] = 1 - uv.array[i * 2 + 1];
+              // }
+              // uv.needsUpdate = true;
             }
             newMaterial.needsUpdate = true;
           } else {
@@ -328,7 +150,7 @@ function TexturedCabinet({ config, showDimensions, mainRef, handleRef, legRef })
         });
       }
     };
-  }, [cabinetScene, handleScene, legScene, config, textureResult, mainRef, handleRef, legRef]);
+  }, [cabinetScene, handleScene, legScene,config.size, config.color, config.texture, config.handleType, config.handleColor, config.legType, config.legColor, textureResult, mainRef, handleRef, legRef]);
   let scale = 1;
   if (config.size === 'small') scale = 0.8;
   else if (config.size === 'large') scale = 1.2;
@@ -408,24 +230,31 @@ function TexturedCabinet({ config, showDimensions, mainRef, handleRef, legRef })
   );
 }
 
-function CabinetModel({ config, showDimensions,mainRef, handleRef, legRef }) {
-  const [appliedTexture, setAppliedTexture] = useState(null);
-  const textureMap = useTexture({
-    map: config.texture ? `/colors/${config.texture}` : '/colors/Amber.png', // Load dynamically
-  });
-  useEffect(() => {
-    setAppliedTexture(textureMap.map);
-  }, [config.texture]);
+// function CabinetModel({ config, showDimensions,mainRef, handleRef, legRef }) {
+//   const [appliedTexture, setAppliedTexture] = useState(null);
+//   const textureMap = useTexture({
+//     map: config.texture ? `/colors/${config.texture}` : '/colors/Amber.png', // Load dynamically
+//   });
+//   useEffect(() => {
+//     setAppliedTexture(textureMap.map);
+//   }, [config.texture]);
   
+//   return (
+//     <Suspense fallback={null}>
+//       <TexturedCabinet config={config} showDimensions={showDimensions} mainRef={mainRef}
+//         handleRef={handleRef}
+//         legRef={legRef} />
+//     </Suspense>
+//   );
+// }
+function CabinetModel({ config, showDimensions, mainRef, handleRef, legRef }) {
   return (
     <Suspense fallback={null}>
       <TexturedCabinet config={config} showDimensions={showDimensions} mainRef={mainRef}
-        handleRef={handleRef}
-        legRef={legRef} />
+        handleRef={handleRef} legRef={legRef} />
     </Suspense>
   );
 }
-
 function CabinetConfigurator() {
   const mainRef = useRef();
   const handleRef = useRef();
@@ -524,6 +353,12 @@ function CabinetConfigurator() {
   const toggleDimensions = () => {
     // setShowDimensions(!showDimensions);
     setShowDimensions(prevShowDimensions => !prevShowDimensions);
+    const currentTexture = textures.find(t => t.id === config.texture);
+  if (currentTexture) {
+    console.log(`Current applied texture: ${currentTexture.id}`);
+  } else {
+    console.log("No texture applied (Solid Color)");
+  }
   };
   
   const handleViewChange = (mode) => {
@@ -786,50 +621,64 @@ const generateGLB = () => {
     const basePrice = sizes.find(s => s.id === config.size)?.price || 200;
     let totalPrice = basePrice;
     
-    // Add texture pricing
-    if (config.texture) {
-      totalPrice += 25; // Premium for textured finishes
-    }
-    
-    if (config.handleColor === 'gold') {
-      totalPrice += 15;
-    } else if (config.handleColor === 'bronze') {
-      totalPrice += 10;
-    }
-
-    if (config.legType === 'D') {
-      totalPrice += 25;
-    }
-    
-    if (config.legColor === '#FFD700') {
-      totalPrice += 20;
-    } else if (config.legColor === '#CD7F32') {
-      totalPrice += 15;
-    }
-    
-    setPrice(totalPrice);
-    setOriginalPrice(Math.round(totalPrice * 1.225));
-  }, [config]);
-  
-
-  const updateConfig = (key, value) => {
-    setConfig((prev) => {
-      const newConfig = { ...prev };
-  
-      if (key === "color" && value !== "") {
-        // Reset texture ONLY if changing from one color to another, not other settings
-        if (prev.texture) newConfig.texture = "";
-      } else if (key === "texture" && value !== "") {
-        // Reset color ONLY if changing from one texture to another
-        if (prev.color) newConfig.color = "";
+      // Add texture pricing
+      if (config.texture) {
+        totalPrice += 25; // Premium for textured finishes
       }
-  
-      newConfig[key] = value;
-      return newConfig;
-      console.log(arModelUrl);
-    });
-  };
-  
+      
+      if (config.handleColor === 'gold') {
+        totalPrice += 15;
+      } else if (config.handleColor === 'bronze') {
+        totalPrice += 10;
+      }
+
+      if (config.legType === 'D') {
+        totalPrice += 25;
+      }
+      
+      if (config.legColor === '#FFD700') {
+        totalPrice += 20;
+      } else if (config.legColor === '#CD7F32') {
+        totalPrice += 15;
+      }
+      
+      setPrice(totalPrice);
+      setOriginalPrice(Math.round(totalPrice * 1.225));
+    }, [config]);
+    
+
+    // const updateConfig = (key, value) => {
+    //   setConfig((prev) => {
+    //     const newConfig = { ...prev };
+    
+    //     if (key === "color" && value !== "") {
+    //       // Reset texture ONLY if changing from one color to another, not other settings
+    //       if (prev.texture) newConfig.texture = "";
+    //     } else if (key === "texture" && value !== "") {
+    //       // Reset color ONLY if changing from one texture to another
+    //       if (prev.color) newConfig.color = "";
+    //     }
+    
+    //     newConfig[key] = value;
+    //     return newConfig;
+    //     console.log(arModelUrl);
+    //   });
+    // };
+    
+
+    const updateConfig = (key, value) => {
+      console.log(`Updating config: key = ${key}, value = ${value}, caller = `, new Error().stack.split('\n')[2].trim());
+      setConfig((prev) => {
+        const newConfig = { ...prev };
+        if (key === "color" && value !== "") {
+          if (prev.texture) newConfig.texture = "";
+        } else if (key === "texture" && value !== "") {
+          if (prev.color) newConfig.color = "";
+        }
+        newConfig[key] = value;
+        return newConfig;
+      });
+    };
 
   return (
     <div className="min-h-screen flex flex-col">
