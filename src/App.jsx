@@ -4509,7 +4509,7 @@ function TexturedCabinet({ config, showDimensions, mainRef, handleRef, legRef })
       const legClone = legScene.clone(true);
       legClone.traverse((node) => {
         if (node.isMesh) {
-          node.material = legMaterial.clone();
+          node.material = bodyMaterial.clone();
         }
       });
       while (legRef.current.children.length > 0) {
@@ -4640,11 +4640,11 @@ function CabinetConfigurator() {
   const location = useLocation();
 
   const textures = [
-    { id: '', name: 'Solid Color' },
-    { id: 'Raya.png', name: 'Natural Wood' },
-    { id: 'Empire.png', name: 'White Marble' },
-    { id: 'Amber.png', name: 'Polished Concrete' },
-    { id: 'Bitmore.png', name: 'Black Leather' }
+    { id: '', name: 'Default' },
+    { id: 'Raya.png', name: 'Raya' },
+    { id: 'Empire.png', name: 'Empire' },
+    { id: 'Amber.png', name: 'Amber' },
+    { id: 'Bitmore.png', name: 'Bitmore' }
   ];
 
   const sizes = [
@@ -5271,14 +5271,12 @@ function CabinetConfigurator() {
           </div>
           <div className="w-full lg:w-2/5 p-4 sm:p-6 overflow-y-auto max-h-[calc(100vh-4rem)] lg:max-h-screen">
             <h1 className="text-2xl sm:text-3xl font-normal mb-6 sm:mb-8">Cabinet Configurator</h1>
-            <div className="config-select relative mb-4 sm:mb-6">
+             {/* <div className="config-select relative mb-4 sm:mb-6">
               <div 
                 className="flex items-center justify-between bg-gray-100 p-2 sm:p-3 rounded cursor-pointer"
                 onClick={toggleSizes}
               >
-                <span className="text-sm sm
-
-:text-base">Size: {sizes.find(s => s.id === config.size)?.name}</span>
+                <span className="text-sm sm:text-base">Size: {sizes.find(s => s.id === config.size)?.name}</span>
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d={showSizes ? "M18 15l-6-6-6 6" : "M6 9l6 6 6-6"} />
                 </svg>
@@ -5296,7 +5294,7 @@ function CabinetConfigurator() {
                   ))}
                 </div>
               )}
-            </div>
+            </div>  */}
             {showARViewer && (
               <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                 <div className="bg-white p-4 rounded-lg w-full max-w-4xl h-full max-h-[90vh] overflow-auto">
@@ -5480,7 +5478,7 @@ function CabinetConfigurator() {
                 </div>
               )}
             </div>
-            <div className="config-select relative mb-4 sm:mb-6">
+           {/* <div className="config-select relative mb-4 sm:mb-6">
               <div 
                 className="flex items-center justify-between bg-gray-100 p-2 sm:p-3 rounded cursor-pointer"
                 onClick={toggleLegColors}
@@ -5512,7 +5510,7 @@ function CabinetConfigurator() {
                   ))}
                 </div>
               )}
-            </div>
+            </div>*/}
             <div className="border-t my-4 sm:my-6"></div>
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
               <div>
