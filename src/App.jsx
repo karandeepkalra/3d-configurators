@@ -4528,13 +4528,21 @@ function TexturedCabinet({ config, showDimensions, mainRef, handleRef, legRef })
     height: 0.8 * scale,
     depth: 0.5 * scale,
   };
-  const widthStart = [-dimensions.width / 2, 0, -dimensions.depth / 2];
-  const widthEnd = [dimensions.width / 2, 0, -dimensions.depth / 2];
-  const heightStart = [-dimensions.width / 2, 0, -dimensions.depth / 2];
-  const heightEnd = [-dimensions.width / 2, dimensions.height, -dimensions.depth / 2];
-  const depthStart = [-dimensions.width / 2, 0, -dimensions.depth / 2];
-  const depthEnd = [-dimensions.width / 2, 0, dimensions.depth / 2];
+  // const widthStart = [-dimensions.width / 2, 0, -dimensions.depth / 2];
+  // const widthEnd = [dimensions.width / 2, 0, -dimensions.depth / 2];
+  // const heightStart = [-dimensions.width / 2, 0, -dimensions.depth / 2];
+  // const heightEnd = [-dimensions.width / 2, dimensions.height, -dimensions.depth / 2];
+  // const depthStart = [-dimensions.width / 2, 0, -dimensions.depth / 2];
+  // const depthEnd = [-dimensions.width / 2, 0, dimensions.depth / 2];
+  const modelOffsetY = -1;
 
+  // Define dimension line positions relative to the model's actual position
+  const widthStart = [-dimensions.width / 2, modelOffsetY, -dimensions.depth / 2];
+  const widthEnd = [dimensions.width / 2, modelOffsetY, -dimensions.depth / 2];
+  const heightStart = [-dimensions.width / 2, modelOffsetY, -dimensions.depth / 2];
+  const heightEnd = [-dimensions.width / 2, modelOffsetY + dimensions.height, -dimensions.depth / 2];
+  const depthStart = [-dimensions.width / 2, modelOffsetY, -dimensions.depth / 2];
+  const depthEnd = [-dimensions.width / 2, modelOffsetY, dimensions.depth / 2];
   useEffect(() => {
     if (showDimensions) {
       console.log('Dimensions visible:', dimensions);
@@ -4548,6 +4556,10 @@ function TexturedCabinet({ config, showDimensions, mainRef, handleRef, legRef })
       <group ref={legRef} scale={scale} position={[0, -1, 0]} />
       {showDimensions && (
         <>
+        <mesh position={widthStart}><sphereGeometry args={[0.05, 32, 32]} /><meshBasicMaterial color="red" /></mesh>
+    <mesh position={widthEnd}><sphereGeometry args={[0.05, 32, 32]} /><meshBasicMaterial color="green" /></mesh>
+    <mesh position={heightStart}><sphereGeometry args={[0.05, 32, 32]} /><meshBasicMaterial color="blue" /></mesh>
+    <mesh position={heightEnd}><sphereGeometry args={[0.05, 32, 32]} /><meshBasicMaterial color="yellow" /></mesh>
           <Dimension start={widthStart} end={widthEnd} visible={showDimensions} />
           <Dimension start={heightStart} end={heightEnd} visible={showDimensions} />
           <Dimension start={depthStart} end={depthEnd} visible={showDimensions} />
