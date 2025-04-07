@@ -4519,7 +4519,7 @@ function TexturedCabinet({ config, showDimensions, mainRef, handleRef, legRef })
     }
   }, [cabinetScene, handleScene, legScene, bodyMaterial, handleMaterial, legMaterial, mainRef, handleRef, legRef]);
 
-  let scale = 3;
+  let scale = 4;
   if (config.size === 'small') scale = 0.8;
   else if (config.size === 'large') scale = 1.2;
 
@@ -4543,9 +4543,9 @@ function TexturedCabinet({ config, showDimensions, mainRef, handleRef, legRef })
 
   return (
     <group>
-      <group ref={mainRef} scale={scale} position={[0, 0, 0]} />
-      <group ref={handleRef} scale={scale} position={[0, 0, 0]} />
-      <group ref={legRef} scale={scale} position={[0, 0, 0]} />
+      <group ref={mainRef} scale={scale} position={[0, -1, 0]} />
+      <group ref={handleRef} scale={scale} position={[0,-1, 0]} />
+      <group ref={legRef} scale={scale} position={[0, -1, 0]} />
       {showDimensions && (
         <>
           <Dimension start={widthStart} end={widthEnd} visible={showDimensions} />
@@ -5249,14 +5249,14 @@ function CabinetConfigurator() {
 
         <div className="flex-1 flex flex-col lg:flex-row">
           <div className="w-full lg:w-3/5 h-[50vh] lg:h-screen flex items-center justify-center bg-gray-50 relative pt-16 lg:pt-0">
-            <Canvas shadows dpr={[1, 2]} gl={{ preserveDrawingBuffer: true }} className="w-full h-full">
+            <Canvas shadows dpr={[1, 2]} gl={{ preserveDrawingBuffer: true }} camera={{ position: [0, 1, 8], fov: 50 }} className="w-full h-full">
               <ambientLight intensity={0.5} />
               <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} intensity={1} />
               <pointLight position={[-10, -10, -10]} intensity={0.5} />
               <Suspense fallback={null}>
                 <CabinetModel config={config} showDimensions={showDimensions} mainRef={mainRef} handleRef={handleRef} legRef={legRef} />
                 <Environment preset="city" />
-                <ContactShadows opacity={0.5} scale={10} blur={1} far={10} resolution={256} />
+                <ContactShadows opacity={0.5} scale={10} blur={1} far={10} resolution={256} position={[0, -1, 0]} />
                 <CanvasCapture />
               </Suspense>
               <OrbitControls 
